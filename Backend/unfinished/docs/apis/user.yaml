@@ -1,0 +1,443 @@
+openapi: 3.0.4
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Server answering Client
+
+info:
+  title: Backend to user API
+  version: 0.0.1
+  description: 用户与服务器交互的接口定义
+
+paths:
+  /user/register:
+    post:
+      summary: 用户发起注册请求
+      requestBody:
+        required: true
+        description: 用户注册时提交的信息，包括用户名
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserLoginPack:
+                  $ref: "#/components/schemas/UserRegisteringPack"
+              required:
+                - UserLoginPack
+      responses:
+        "200":
+          description: 用户注册登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 用户注册登录成功
+                  token: 
+                    $ref: "#/components/schemas/ServerProvidedToken"
+                  data:
+                    $ref: "#/components/schemas/UserBasicInfo"
+        "404":
+          $ref: "#/components/responses/DataErrorResponse"
+
+  /user/login:
+    post:
+      summary: 用户发起登录请求
+      requestBody:
+        required: true
+        description: 用户登录时提交的信息，包括用户名
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserLoginPack:
+                  $ref: "#/components/schemas/UserLoginPack"
+              required:
+                - UserLoginPack
+      responses:
+        "200":
+          description: 用户登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 用户登录成功
+                  token: 
+                    $ref: "#/components/schemas/ServerProvidedToken"
+                  data:
+                    $ref: "#/components/schemas/UserBasicInfo"
+        "404":
+          $ref: "#/components/responses/DataErrorResponse"
+
+  /user/updateLocal:
+    post:
+      summary: 用户发起更新本地数据请求
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserSubmittedToken:
+                  $ref: "#/components/schemas/UserSubmittedToken"
+              required:
+                - UserSubmittedToken
+      responses:
+        "200":
+          description: 用户更新本地数据请求成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 用户更新本地数据请求成功
+                  data: 
+                    $ref: "#/components/schemas/UserBasicInfo"
+        "404":
+          $ref: "#/components/responses/DataErrorResponse"
+
+  /user/purches:
+    post:
+      summary: 用户发起套餐购买请求
+      description: 服务器返回支付url，成功后更新vip状态
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserBuyingBuyingPack:
+                  $ref: "#/components/schemas/UserBuyingBuyingPack"
+              required:
+                - UserBuyingBuyingPack
+      responses:
+        "200":
+          description: 用户套餐购买请求成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 用户套餐购买请求成功
+                  buyingUrl:
+                    description: 用户会收到一个用于支付的链接
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/UserBasicInfo"
+        "404":
+          $ref: "#/components/responses/DataErrorResponse"
+
+  /user/action:
+    post:
+      summary: 用户发起功能请求
+      description: 处理所有没有单独写出的功能
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserPostActionPack:
+                  $ref: "#/components/schemas/UserPostActionPack"
+              required:
+                - UserPostActionPack
+      responses:
+        "200":
+          description: 用户请求成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 用户请求成功
+                  token: 
+                    $ref: "#/components/schemas/ServerProvidedToken"
+                  data: 
+                    type: object
+        "404":
+          $ref: "#/components/responses/DataErrorResponse"
+
+  
+components:
+  schemas:
+    #用户给服务器的包
+    UserRegisteringPack:
+      type: object
+      properties:
+        requireTime: 
+          type: integer
+          format: int64
+        userName:
+          type: string
+        userEmail:
+          type: string
+        userPhoneNumber:
+          type: integer
+        userWechatId:
+          type: string
+        validateCredential:
+          type: string
+        credentialType:
+          type: string
+        password:
+          type: string
+      required:
+        - requireTime
+        - userName
+        - validateCredential
+        - credentialType
+        - password
+
+    UserLoginPack:
+      type: object
+      properties:
+        requireTime: 
+          type: integer
+          format: int64
+        userID:
+          type: string
+        userIDType:
+          type: string
+        loginPwd:
+          type: string
+        loginPwdType:
+          type: string
+      required:
+        - requireTime
+        - userID
+        - userIDType
+        - loginPwd
+        - loginPwdType
+
+    UserSubmittedToken:
+      type: object
+      properties:
+        userUUID:
+          type: string
+        access_token:
+          type: string
+          description: JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          example: bearer
+
+    UserBuyingBuyingPack:
+      type: object
+      properties:
+        requireTime: 
+          type: integer
+          format: int64
+        purchesType:
+          type: integer
+        purchesMonth:
+          type: integer
+        additionalData:
+          type: object
+        UserSubmittedToken:
+          $ref: "#/components/schemas/UserSubmittedToken"
+      required:
+        - requireTime
+        - purchesType
+        - purchesMonth
+        - UserSubmittedToken
+
+    UserPostActionPack:
+      type: object
+      properties:
+        requireTime: 
+          type: integer
+          format: int64
+        actionType:
+          type: integer
+        message:
+          type: string
+        additionalData:
+          type: object
+        UserSubmittedToken:
+          $ref: "#/components/schemas/UserSubmittedToken"
+      required:
+        - requireTime
+        - actionType
+        - UserSubmittedToken
+
+    #服务器给用户的包
+    ServerProvidedToken:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          example: bearer
+        expires_in:
+          type: integer
+          description: Lifetime of the token in seconds
+          example: 3600
+      required:
+        - access_token
+        - token_type
+        - expires_in
+
+    UserBasicInfo:
+      type: object
+      description: 没有额外结构的基础用户数据
+      properties:
+        userUUID:
+          type: string
+        fromPlatformID:
+          type: integer
+        username:
+          type: string
+        headImage:
+          description: url of image
+          type: string
+        userVipLevel:
+          type: integer
+        userVipRemainDays:
+          type: integer
+        userVipEndDate:
+          type: string
+        userEmail:
+          type: string
+        userPhoneNumber:
+          type: integer
+        userWechatId:
+          type: string
+        UserRemainingAmounts:
+          $ref: "#/components/schemas/UserRemainingAmounts"
+        userSkins:
+          description: 用户若干类皮肤的拥有情况列表
+          type: array
+          items:
+            description: 用户每系列皮肤的拥有情况
+            type: array
+            items:
+              type: boolean
+      required:
+        - userUUID
+        - username
+        - userVipLevel
+        - UserRemainingAmounts
+        - userSkins
+
+    UserRemainingAmounts:
+      description: 用户每种服务的剩余次数
+      type: array
+      items:
+        type: integer
+
+    UserBriefRecord:
+      type: object
+      description: 一个列表包含了用户某次询问的完整记录
+      properties:
+        createTime: 
+          type: integer
+          format: int64
+        typeID: 
+          type: integer
+        sessionID:
+          description: 用于查询输入输出记录和音频，方式userUUID_sessionID
+          type: string
+        sessionHash:
+          description: 对该对象+输入输出记录的hash
+          type: string
+
+
+    UserHistoryList:
+      description: 一个列表包含了用户所有的询问记录大纲
+      type: array
+      items:
+          $ref: "#/components/schemas/UserBriefRecord"
+
+    UserSession:
+      type: object
+      description: 一个列表包含了用户某次询问的完整记录
+      properties:
+        UserBriefRecord: 
+          $ref: "#/components/schemas/UserBriefRecord"
+        audioDownloadUrl:
+          description: 如果无效则为null，否则提供一个音频下载url
+          type: string
+          default: null
+        textRecord:
+          description: 完整的文字记录
+          type: array
+          items:
+            description: 单条文字消息记录
+            type: object
+            properties:
+              fromServer:
+                description: 是否是服务器发给用户的消息
+                type: boolean
+              createTime:
+                type: integer
+                format: int64
+              message:
+                type: string
+      required:
+        - UserBriefRecord
+        - textRecord
+
+    UserCurrentSession:
+      type: object
+      description: 一个列表包含了用户某次询问的完整记录
+      properties:
+        UserCurrentSession:
+          $ref: "#/components/schemas/UserCurrentSession"
+        currentStepId:
+          type: integer
+      required:
+        - UserCurrentSession
+        - currentStepId
+
+    #通用
+    #数据异常返回
+  responses:
+    DataErrorResponse:
+      description: 数据异常或未找到
+      content:
+        application/json:
+          schema:
+            type: object
+            description: 请求参数错误或缺失必填字段
+            properties:
+              status:
+                type: string
+                example: error
+              message:
+                type: string
+                default: "请求参数错误或缺失必填字段"

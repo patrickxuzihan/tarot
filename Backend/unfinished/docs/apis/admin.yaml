@@ -1,0 +1,174 @@
+openapi: 3.0.4
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Server answering Client
+
+info:
+  title: Backend to user API
+  version: 0.0.1
+  description: 管理员与服务器交互的接口定义
+
+paths:
+  /private/admin/login:
+    post:
+      summary: 管理员发起登录请求
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserLoginPack:
+                  $ref: "#/components/schemas/AdminLoginPack"
+              required:
+                - UserLoginPack
+      responses:
+        "200":
+          description: 用户登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 用户登录成功
+                  token: 
+                    $ref: "#/components/schemas/ServerProvidedToken"
+                  data:
+                    $ref: "#/components/schemas/GlobalBasicInfo"
+        "404":
+          $ref: "#/components/responses/DataErrorResponse"
+
+  /user/action:
+    post:
+      summary: 用户发起功能请求
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserPostActionPack:
+                  $ref: "#/components/schemas/AdminPostActionPack"
+              required:
+                - UserPostActionPack
+      responses:
+        "200":
+          description: 用户请求成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 用户请求成功
+                  data: 
+                    type: object
+        "404":
+          $ref: "#/components/responses/DataErrorResponse"
+
+  
+components:
+  schemas:
+    #用户给服务器的包
+    AdminLoginPack:
+      type: object
+      properties:
+        userID:
+          type: string
+        loginPwd:
+          type: string
+      required:
+        - userID
+        - loginPwd
+
+    AdminSubmittedToken:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    AdminPostActionPack:
+      type: object
+      properties:
+        requireTime: 
+          type: integer
+          format: int64
+        command:
+          type: string
+        AdminSubmittedToken:
+          $ref: "#/components/schemas/AdminSubmittedToken"
+      required:
+        - requireTime
+        - command
+        - AdminSubmittedToken
+
+    #服务器给用户的包
+    ServerProvidedToken:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expires_in:
+          type: integer
+          description: Lifetime of the token in seconds
+          example: 3600
+      required:
+        - access_token
+        - expires_in
+
+    GlobalBasicInfo:
+      type: object
+      description: 全局的用户数据
+      properties:
+        totalUserNum: 
+          type: integer
+        currentUserNum: 
+          type: integer
+        totalVipNums:
+          type: array
+          items:
+            type: integer
+        currentVipNums:
+          type: array
+          items:
+            type: integer
+        useagePercentage:
+          type: number
+      required:
+        - totalUserNum
+        - currentUserNum
+        - totalVipNums
+        - currentVipNums
+        - useagePercentage
+
+
+    #通用
+    #数据异常返回
+  responses:
+    DataErrorResponse:
+      description: 数据异常或未找到
+      content:
+        application/json:
+          schema:
+            type: object
+            description: 请求参数错误或缺失必填字段
+            properties:
+              message:
+                type: string
+                default: "请求参数错误或缺失必填字段"
