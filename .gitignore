@@ -1,0 +1,4 @@
+echo "# 忽略前端临时文件/文件夹" >> .gitignore
+echo "Frontend/node_modules/"  >> .gitignore
+echo "Frontend/assets/"       >> .gitignore
+echo "Frontend/src/"          >> .gitignore
