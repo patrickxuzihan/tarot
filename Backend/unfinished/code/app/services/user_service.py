@@ -15,7 +15,7 @@ class UserService:
         raise NotImplementedError
 
     def update_local(self, pack: UserPostActionPack) -> Any:
-        # TODO: 实现更新本地数据
+        # TODO: 实现更新本地数据 i.e. getdata
         raise NotImplementedError
 
     def purchase(self, pack: UserBuyingBuyingPack) -> Any:

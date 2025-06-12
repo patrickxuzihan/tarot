@@ -45,7 +45,7 @@ paths:
         "404":
           $ref: "#/components/responses/DataErrorResponse"
 
-  /user/action:
+  /private/admin/action:
     post:
       summary: 用户发起功能请求
       requestBody:
