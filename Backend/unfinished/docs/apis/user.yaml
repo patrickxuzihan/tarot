@@ -1,12 +1,12 @@
 openapi: 3.0.4
 
 servers:
-  - url: http://localhost:3000/api/v1
+  - url: http://localhost:80
     description: Server answering Client
 
 info:
   title: Backend to user API
-  version: 0.0.1
+  version: 0.0.2
   description: 用户与服务器交互的接口定义
 
 paths:
@@ -36,13 +36,10 @@ paths:
                   status:
                     type: string
                     example: success
-                  message:
-                    type: string
-                    example: 用户注册登录成功
                   token: 
-                    $ref: "#/components/schemas/ServerProvidedToken"
+                    type: string
                   data:
-                    $ref: "#/components/schemas/UserBasicInfo"
+                    $ref: "#/components/schemas/UserInfo"
         "404":
           $ref: "#/components/responses/DataErrorResponse"
 
@@ -72,13 +69,10 @@ paths:
                   status:
                     type: string
                     example: success
-                  message:
-                    type: string
-                    example: 用户登录成功
                   token: 
-                    $ref: "#/components/schemas/ServerProvidedToken"
+                    type: string
                   data:
-                    $ref: "#/components/schemas/UserBasicInfo"
+                    $ref: "#/components/schemas/UserInfo"
         "404":
           $ref: "#/components/responses/DataErrorResponse"
 
@@ -92,8 +86,8 @@ paths:
             schema:
               type: object
               properties:
-                UserSubmittedToken:
-                  $ref: "#/components/schemas/UserSubmittedToken"
+                token:
+                    type: string
               required:
                 - UserSubmittedToken
       responses:
@@ -107,11 +101,8 @@ paths:
                   status:
                     type: string
                     example: success
-                  message:
-                    type: string
-                    example: 用户更新本地数据请求成功
                   data: 
-                    $ref: "#/components/schemas/UserBasicInfo"
+                    $ref: "#/components/schemas/UserInfo"
         "404":
           $ref: "#/components/responses/DataErrorResponse"
 
@@ -141,14 +132,11 @@ paths:
                   status:
                     type: string
                     example: success
-                  message:
-                    type: string
-                    example: 用户套餐购买请求成功
                   buyingUrl:
                     description: 用户会收到一个用于支付的链接
                     type: string
                   data:
-                    $ref: "#/components/schemas/UserBasicInfo"
+                    $ref: "#/components/schemas/UserInfo"
         "404":
           $ref: "#/components/responses/DataErrorResponse"
 
@@ -178,11 +166,8 @@ paths:
                   status:
                     type: string
                     example: success
-                  message:
-                    type: string
-                    example: 用户请求成功
                   token: 
-                    $ref: "#/components/schemas/ServerProvidedToken"
+                    type: string
                   data: 
                     type: object
         "404":
@@ -195,7 +180,7 @@ components:
     UserRegisteringPack:
       type: object
       properties:
-        requireTime: 
+        requireTime:
           type: integer
           format: int64
         userName:
@@ -240,19 +225,6 @@ components:
         - loginPwd
         - loginPwdType
 
-    UserSubmittedToken:
-      type: object
-      properties:
-        userUUID:
-          type: string
-        access_token:
-          type: string
-          description: JWT access token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        token_type:
-          type: string
-          example: bearer
-
     UserBuyingBuyingPack:
       type: object
       properties:
@@ -265,8 +237,8 @@ components:
           type: integer
         additionalData:
           type: object
-        UserSubmittedToken:
-          $ref: "#/components/schemas/UserSubmittedToken"
+        token:
+          type: string
       required:
         - requireTime
         - purchesType
@@ -285,39 +257,17 @@ components:
           type: string
         additionalData:
           type: object
-        UserSubmittedToken:
-          $ref: "#/components/schemas/UserSubmittedToken"
+        token: 
+          type: string
       required:
         - requireTime
         - actionType
-        - UserSubmittedToken
+        - token
 
-    #服务器给用户的包
-    ServerProvidedToken:
-      type: object
-      properties:
-        access_token:
-          type: string
-          description: JWT access token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        token_type:
-          type: string
-          example: bearer
-        expires_in:
-          type: integer
-          description: Lifetime of the token in seconds
-          example: 3600
-      required:
-        - access_token
-        - token_type
-        - expires_in
-
-    UserBasicInfo:
+    UserInfo:
       type: object
       description: 没有额外结构的基础用户数据
       properties:
-        userUUID:
-          type: string
         fromPlatformID:
           type: integer
         username:
@@ -327,18 +277,15 @@ components:
           type: string
         userVipLevel:
           type: integer
-        userVipRemainDays:
-          type: integer
         userVipEndDate:
           type: string
-        userEmail:
-          type: string
-        userPhoneNumber:
-          type: integer
-        userWechatId:
+        userPlatUid:
           type: string
         UserRemainingAmounts:
-          $ref: "#/components/schemas/UserRemainingAmounts"
+          description: 用户每种服务的剩余次数
+          type: array
+          items:
+            type: integer
         userSkins:
           description: 用户若干类皮肤的拥有情况列表
           type: array
@@ -347,26 +294,26 @@ components:
             type: array
             items:
               type: boolean
-      required:
-        - userUUID
-        - username
-        - userVipLevel
-        - UserRemainingAmounts
-        - userSkins
+        userHistoryList:
+          description: 一个列表包含了用户所有的询问记录大纲
+          type: array
+          items:
+            $ref: "#/components/schemas/UserBriefSessionRecord"
+        currentStepId:
+          description: 0 if has no current session
+          type: integer
+        userRegTime:
+          type: string
 
-    UserRemainingAmounts:
-      description: 用户每种服务的剩余次数
-      type: array
-      items:
-        type: integer
-
-    UserBriefRecord:
+    UserBriefSessionRecord:
       type: object
-      description: 一个列表包含了用户某次询问的完整记录
+      description: 一个列表包含了用户某次询问的大致记录
       properties:
         createTime: 
           type: integer
           format: int64
+        userID:
+          type: string
         typeID: 
           type: integer
         sessionID:
@@ -376,19 +323,12 @@ components:
           description: 对该对象+输入输出记录的hash
           type: string
 
-
-    UserHistoryList:
-      description: 一个列表包含了用户所有的询问记录大纲
-      type: array
-      items:
-          $ref: "#/components/schemas/UserBriefRecord"
-
     UserSession:
       type: object
       description: 一个列表包含了用户某次询问的完整记录
       properties:
         UserBriefRecord: 
-          $ref: "#/components/schemas/UserBriefRecord"
+          $ref: "#/components/schemas/UserBriefSessionRecord"
         audioDownloadUrl:
           description: 如果无效则为null，否则提供一个音频下载url
           type: string
@@ -412,17 +352,6 @@ components:
         - UserBriefRecord
         - textRecord
 
-    UserCurrentSession:
-      type: object
-      description: 一个列表包含了用户某次询问的完整记录
-      properties:
-        UserCurrentSession:
-          $ref: "#/components/schemas/UserCurrentSession"
-        currentStepId:
-          type: integer
-      required:
-        - UserCurrentSession
-        - currentStepId
 
     #通用
     #数据异常返回
@@ -438,6 +367,3 @@ components:
               status:
                 type: string
                 example: error
-              message:
-                type: string
-                default: "请求参数错误或缺失必填字段"

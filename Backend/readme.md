@@ -1,3 +1,44 @@
+更新nodejs+mongodb骨架
+通过main.js开启http服务
+完成基本数据库代码
+已经测试数据库（db/test
+使用前填入mongo的‘在此输入db 访问url’
+
+表单内容：
+{
+  "_id": {
+    "$oid": "684c694ad22235b72e7908a6"
+  },
+  "username": null,
+  "image": "https://default.image.url",
+  "userVipLevel": 0,
+  "userVipEndDate": 1749838154484,
+  "fromPlatformID": null,
+  "userPlatUid": null,
+  "UserRemainingAmounts": [
+    0,
+    0,
+    0
+  ],
+  "userSkins": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "userHistoryList": [],
+  "currentStepId": 0,
+  "userRegTime": 1749838154484
+}
+
+
+旧版：
 windows使用时运行run.bat，会自动安装python相关依赖并运行服务端
 
 后端采用python fastapi，数据库待定

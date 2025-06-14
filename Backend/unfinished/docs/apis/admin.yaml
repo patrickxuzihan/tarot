@@ -1,12 +1,12 @@
 openapi: 3.0.4
 
 servers:
-  - url: http://localhost:3000/api/v1
+  - url: http://localhost:80
     description: Server answering Client
 
 info:
   title: Backend to user API
-  version: 0.0.1
+  version: 0.0.2
   description: 管理员与服务器交互的接口定义
 
 paths:
@@ -39,7 +39,7 @@ paths:
                     type: string
                     example: 用户登录成功
                   token: 
-                    $ref: "#/components/schemas/ServerProvidedToken"
+                    type: string
                   data:
                     $ref: "#/components/schemas/GlobalBasicInfo"
         "404":
@@ -93,14 +93,6 @@ components:
         - userID
         - loginPwd
 
-    AdminSubmittedToken:
-      type: object
-      properties:
-        access_token:
-          type: string
-          description: JWT access token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
     AdminPostActionPack:
       type: object
       properties:
@@ -109,28 +101,12 @@ components:
           format: int64
         command:
           type: string
-        AdminSubmittedToken:
-          $ref: "#/components/schemas/AdminSubmittedToken"
+        token:
+          type: string
       required:
         - requireTime
         - command
         - AdminSubmittedToken
-
-    #服务器给用户的包
-    ServerProvidedToken:
-      type: object
-      properties:
-        access_token:
-          type: string
-          description: JWT access token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        expires_in:
-          type: integer
-          description: Lifetime of the token in seconds
-          example: 3600
-      required:
-        - access_token
-        - expires_in
 
     GlobalBasicInfo:
       type: object
