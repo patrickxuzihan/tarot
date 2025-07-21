@@ -52,9 +52,9 @@ struct HomeView: View {
             }
             .tag(3)
             
-            // ⑤ 账号中心（占位）
+            // ⑤ 账号中心（传入 selectedTab 绑定以支持内部跳转）
             NavigationStack {
-                AccountView()
+                AccountView(selectedTab: $selectedTab)
             }
             .tabItem {
                 Image(systemName: "person.crop.circle.fill")
@@ -116,21 +116,7 @@ private extension HomeView {
             .navigationBarHidden(true)
         }
     }
-}
 
-// MARK: - 预览
-struct HomeView_Previews: PreviewProvider {
-    static var previews: some View {
-        HomeView()
-    }
-}
-
-//
-// ──────────────────────────────────────────────────────────────────────────────
-// 以下是“原有的辅助视图／组件／逻辑”，完整保留，未做删除：
-//
-
-extension HomeView {
     // 初始化广告视图
     private func initializeAdViews() {
         adViews = [
@@ -198,9 +184,11 @@ extension HomeView {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 15)
-        .background(Color(red: 0.2, green: 0.1, blue: 0.35)
-                        .opacity(0.8)
-                        .edgesIgnoringSafeArea(.top))
+        .background(
+            Color(red: 0.2, green: 0.1, blue: 0.35)
+                .opacity(0.8)
+                .edgesIgnoringSafeArea(.top)
+        )
     }
     
     // MARK: - 快速占卜 Section
@@ -212,37 +200,42 @@ extension HomeView {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 5)
             
-            Button(action: { /* 快速占卜逻辑 */ }) {
-                VStack(spacing: 15) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 40))
-                        .symbolEffect(.bounce, options: .repeating)
-                        .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
-                    
-                    Text("点击开始神秘占卜")
-                        .font(.headline).foregroundColor(.white)
-                        .padding(.bottom, 10)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 25)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(LinearGradient(
-                            colors: [Color(red: 0.5, green: 0.2, blue: 0.8), Color(red: 0.4, green: 0.1, blue: 0.6)],
+            VStack(spacing: 15) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 40))
+                    .symbolEffect(.bounce, options: .repeating)
+                    .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
+                
+                Text("点击开始神秘占卜")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.bottom, 10)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 25)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(red: 0.5, green: 0.2, blue: 0.8),
+                                     Color(red: 0.4, green: 0.1, blue: 0.6)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
-                        ))
-                        .shadow(color: .purple.opacity(0.7), radius: 15, y: 5)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(LinearGradient(
+                        )
+                    )
+                    .shadow(color: .purple.opacity(0.7), radius: 15, y: 5)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
+                        LinearGradient(
                             colors: [Color(red: 0.8, green: 0.5, blue: 1.0), .purple],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
-                        ), lineWidth: 2)
-                )
-            }
+                        ),
+                        lineWidth: 2
+                    )
+            )
         }
     }
     
@@ -273,7 +266,6 @@ extension HomeView {
     
     private func handleAdTap(index: Int) {
         print("点击了广告 #\(index+1)")
-        // 根据 index 跳转或处理
     }
     
     // MARK: - 每日塔罗话题 Section
@@ -284,7 +276,7 @@ extension HomeView {
                     .font(.title3).fontWeight(.bold)
                     .foregroundColor(.white)
                 Spacer()
-                Button {} label: {
+                NavigationLink(destination: DailyTopicsSectionView()) {
                     Text("查看全部")
                         .font(.subheadline)
                         .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
@@ -402,5 +394,13 @@ extension HomeView {
     private func resetAutoScroll() {
         stopAutoScroll()
         startAutoScroll()
+    }
+}
+
+// MARK: - 预览
+struct HomeView_Previews: PreviewProvider {
+    static var previews: some View {
+        HomeView()
+            .preferredColorScheme(.dark)
     }
 }
