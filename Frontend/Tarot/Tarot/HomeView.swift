@@ -52,9 +52,9 @@ struct HomeView: View {
             }
             .tag(3)
             
-            // ⑤ 账号中心（传入 selectedTab 绑定以支持内部跳转）
+            // ⑤ 账号中心
             NavigationStack {
-                AccountView(selectedTab: $selectedTab)
+                AccountView()
             }
             .tabItem {
                 Image(systemName: "person.crop.circle.fill")
@@ -166,14 +166,17 @@ private extension HomeView {
             Spacer()
             
             HStack(spacing: 15) {
-                Button { } label: {
+                Button { /* 通知逻辑 */ } label: {
                     Image(systemName: "bell.fill")
                         .font(.system(size: 20))
                         .foregroundColor(.white)
                         .padding(8)
                         .background(Circle().fill(Color.purple.opacity(0.4)))
                 }
-                Button { } label: {
+                Button {
+                    // 切换到“账号”标签
+                    selectedTab = 4
+                } label: {
                     Image(systemName: "gearshape.fill")
                         .font(.system(size: 20))
                         .foregroundColor(.white)
@@ -191,7 +194,7 @@ private extension HomeView {
         )
     }
     
-    // MARK: - 快速占卜 Section
+    // MARK: - 快速占卜 Section（由外层 NavigationLink 触发）
     private var quickDivinationSection: some View {
         VStack(spacing: 15) {
             Text("快速占卜")
@@ -335,49 +338,6 @@ private extension HomeView {
         }
     }
     
-    // MARK: - 自定义 TabBar（已不再调用，仅保留）
-    private var tabBarSection: some View {
-        GeometryReader { geo in
-            HStack(spacing: 0) {
-                TabBarButton(icon: "house.fill", label: "主页", isSelected: selectedTab==0) { selectedTab=0 }
-                TabBarButton(icon: "bubble.left.and.bubble.right.fill", label: "论坛", isSelected: selectedTab==1) { showForumView=true }
-                TabBarButton(icon: "square.grid.3x3.fill", label: "塔罗宫能", isSelected: selectedTab==2) { selectedTab=2 }
-                TabBarButton(icon: "archivebox.fill", label: "塔罗屋", isSelected: selectedTab==3) { selectedTab=3 }
-                TabBarButton(icon: "person.crop.circle.fill", label: "账号", isSelected: selectedTab==4) { selectedTab=4 }
-            }
-            .padding(.top, 10)
-            .padding(.bottom, geo.safeAreaInsets.bottom)
-            .background(Color(red: 0.18, green: 0.08, blue: 0.3).edgesIgnoringSafeArea(.bottom))
-            .overlay(Rectangle().frame(height: 0.5).foregroundColor(Color.white.opacity(0.2)), alignment: .top)
-        }
-        .frame(height: 50)
-    }
-    
-    struct TabBarButton: View {
-        let icon: String
-        let label: String
-        let isSelected: Bool
-        let action: () -> Void
-        
-        var body: some View {
-            Button(action: action) {
-                VStack(spacing: 4) {
-                    Image(systemName: icon)
-                        .font(.system(size: 22))
-                        .symbolEffect(.bounce, value: isSelected)
-                        .foregroundColor(isSelected ? .white : Color(red: 0.8, green: 0.7, blue: 1.0))
-                    Text(label)
-                        .font(.system(size: 12))
-                        .foregroundColor(isSelected ? .white : Color(red: 0.8, green: 0.7, blue: 1.0))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(isSelected ? Color.purple.opacity(0.3) : Color.clear)
-                .contentShape(Rectangle())
-            }
-        }
-    }
-    
     // MARK: - 自动滚动逻辑
     private func startAutoScroll() {
         stopAutoScroll()
@@ -401,6 +361,5 @@ private extension HomeView {
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView()
-            .preferredColorScheme(.dark)
     }
 }
