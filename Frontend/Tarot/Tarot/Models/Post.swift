@@ -1,4 +1,3 @@
-//
 //  Post.swift
 //  Tarot
 //
@@ -17,7 +16,8 @@ struct Post: Identifiable, Codable {
     var likes: Int
     var comments: Int
     var isLiked: Bool
-    
+    let tags: [String]     // 新增：每个帖子带有的标签，可为空数组
+
     // 格式化时间显示
     var formattedTime: String {
         let formatter = DateFormatter()
@@ -25,7 +25,7 @@ struct Post: Identifiable, Codable {
         formatter.timeStyle = .short
         return formatter.string(from: timestamp)
     }
-    
+
     // 相对时间显示
     var relativeTime: String {
         let formatter = RelativeDateTimeFormatter()
@@ -46,7 +46,8 @@ extension Post {
             timestamp: Date().addingTimeInterval(-3600),
             likes: 24,
             comments: 8,
-            isLiked: false
+            isLiked: false,
+            tags: ["每日运势", "命运之轮"]
         ),
         Post(
             id: UUID(),
@@ -57,7 +58,8 @@ extension Post {
             timestamp: Date().addingTimeInterval(-7200),
             likes: 32,
             comments: 12,
-            isLiked: true
+            isLiked: true,
+            tags: ["爱情占卜", "潜意识"]
         ),
         Post(
             id: UUID(),
@@ -68,7 +70,8 @@ extension Post {
             timestamp: Date().addingTimeInterval(-10800),
             likes: 18,
             comments: 6,
-            isLiked: false
+            isLiked: false,
+            tags: ["牌阵解析"]
         ),
         Post(
             id: UUID(),
@@ -79,7 +82,8 @@ extension Post {
             timestamp: Date().addingTimeInterval(-14400),
             likes: 45,
             comments: 15,
-            isLiked: false
+            isLiked: false,
+            tags: ["星座联结"]
         ),
         Post(
             id: UUID(),
@@ -90,7 +94,33 @@ extension Post {
             timestamp: Date().addingTimeInterval(-18000),
             likes: 56,
             comments: 22,
-            isLiked: true
+            isLiked: true,
+            tags: []    // 无标签
+        ),
+        // 额外模拟帖，用于预览测试
+        Post(
+            id: UUID(),
+            author: "牌意解析师",
+            authorAvatar: "avatar9",
+            title: "宝剑十的逆位解读",
+            content: "宝剑十逆位意味着压力过大和重生的契机，大家怎么看？",
+            timestamp: Date().addingTimeInterval(-20000),
+            likes: 10,
+            comments: 3,
+            isLiked: false,
+            tags: ["塔罗教学", "牌意解析"]
+        ),
+        Post(
+            id: UUID(),
+            author: "感情占卜官",
+            authorAvatar: "avatar10",
+            title: "恋人牌在选择题中的作用",
+            content: "恋人牌总是让我在感情抉择上犹豫，你们有同样的体验吗？",
+            timestamp: Date().addingTimeInterval(-25000),
+            likes: 14,
+            comments: 5,
+            isLiked: false,
+            tags: ["爱情占卜"]
         )
     ]
 }

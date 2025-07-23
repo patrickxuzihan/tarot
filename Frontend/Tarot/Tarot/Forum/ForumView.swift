@@ -12,6 +12,9 @@ struct ForumView: View {
     @State private var showingNewPostView = false
     @State private var searchText = ""
     
+    // 新增：当前选中的标签（nil 表示不筛选）
+    @State private var selectedTopic: String? = nil
+    
     var body: some View {
         ZStack {
             // 深紫色渐变背景（与主页一致）
@@ -151,25 +154,37 @@ struct ForumView: View {
             Color(red: 0.5, green: 0.3, blue: 0.8)
         ]
         
+        let topic = topics[index-1]
+        let isSelected = (selectedTopic == topic)
+        
         return Button(action: {
-            // 处理话题点击
-            print("点击了话题: \(topics[index-1])")
+            // 切换过滤标签：再次点击同一标签可清除筛选
+            if selectedTopic == topic {
+                selectedTopic = nil
+            } else {
+                selectedTopic = topic
+            }
         }) {
-            Text("#\(topics[index-1])")
+            Text("#\(topic)")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(isSelected ? .black : .white)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
                 .background(
                     Capsule()
-                        .fill(colors[index-1])
+                        .fill(isSelected ? Color.white : colors[index-1])
                 )
         }
     }
     
     private var postsListSection: some View {
         VStack(spacing: 15) {
-            ForEach(posts) { post in
+            // 根据 selectedTopic 筛选
+            ForEach(posts.filter { post in
+                guard let tag = selectedTopic else { return true }
+                // 假设 Post 有 tags 属性
+                return post.tags.contains(tag)
+            }) { post in
                 NavigationLink(destination: PostDetailView(post: post)) {
                     postCard(post: post)
                 }
@@ -237,9 +252,9 @@ struct ForumView: View {
             HStack(spacing: 25) {
                 Button(action: {
                     // 点赞/取消点赞
-                    if let index = posts.firstIndex(where: { $0.id == post.id }) {
-                        posts[index].isLiked.toggle()
-                        posts[index].likes += post.isLiked ? -1 : 1
+                    if let idx = posts.firstIndex(where: { $0.id == post.id }) {
+                        posts[idx].isLiked.toggle()
+                        posts[idx].likes += post.isLiked ? -1 : 1
                     }
                 }) {
                     HStack(spacing: 5) {
