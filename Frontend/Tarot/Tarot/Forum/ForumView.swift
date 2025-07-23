@@ -69,15 +69,27 @@ struct ForumView: View {
             
             Spacer()
             
-            Button(action: {}) {
-                Image(systemName: "bell.fill")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .padding(10)
-                    .background(
-                        Circle()
-                            .fill(Color.purple.opacity(0.4))
-                    )
+            HStack(spacing: 15) {
+                NavigationLink(destination: NotificationsView()) {
+                    Image(systemName: "bell.fill")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .padding(10)
+                        .background(
+                            Circle()
+                                .fill(Color.purple.opacity(0.4))
+                        )
+                }
+//                Button(action: {}) {
+//                    Image(systemName: "gearshape.fill")
+//                        .font(.title2)
+//                        .foregroundColor(.white)
+//                        .padding(10)
+//                        .background(
+//                            Circle()
+//                                .fill(Color.purple.opacity(0.4))
+//                        )
+//                }
             }
         }
         .padding(.horizontal, 20)

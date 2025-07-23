@@ -1,3 +1,10 @@
+//
+//  HomeView.swift
+//  Tarot
+//
+//  Created by Xu Zihan on 7/12/25.
+//
+
 import SwiftUI
 
 // MARK: - 主视图（含五大 Tab）
@@ -58,7 +65,7 @@ struct HomeView: View {
             }
             .tabItem {
                 Image(systemName: "person.crop.circle.fill")
-                Text("账号")
+                Text("我")
             }
             .tag(4)
         }
@@ -157,7 +164,7 @@ private extension HomeView {
                 Text("梦多塔")
                     .font(.title2).fontWeight(.bold)
                     .foregroundColor(.white).shadow(color: .purple, radius: 3)
-                Text("探索未知的智慧")
+                Text("你的塔罗未必只是塔罗")
                     .font(.caption)
                     .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
                     .opacity(0.9)
@@ -166,7 +173,7 @@ private extension HomeView {
             Spacer()
             
             HStack(spacing: 15) {
-                Button { /* 通知逻辑 */ } label: {
+                NavigationLink(destination: NotificationsView()) {
                     Image(systemName: "bell.fill")
                         .font(.system(size: 20))
                         .foregroundColor(.white)
