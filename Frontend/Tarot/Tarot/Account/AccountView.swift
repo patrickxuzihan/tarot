@@ -1,3 +1,10 @@
+//
+//  AccountView.swift
+//  Tarot
+//
+//  Created by Xu Zihan on 7/12/25.
+//
+
 import SwiftUI
 
 struct AccountView: View {
@@ -33,6 +40,7 @@ struct AccountView: View {
                     userInfoCard
                         .padding(.top, 20)
 
+                    // 会员状态卡片，点击进入详情
                     membershipCard
 
                     settingGroup(
@@ -118,70 +126,54 @@ struct AccountView: View {
         .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(red: 0.6, green: 0.3, blue: 0.8), lineWidth: 1))
     }
 
-    // MARK: - 会员信息卡片
+    // MARK: - 会员状态卡片（可点击）
     private var membershipCard: some View {
-        VStack(spacing: 15) {
-            HStack {
-                Text("会员状态")
-                    .font(.headline)
-                    .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
-                Spacer()
-                if user.memberType == .none {
-                    NavigationLink(destination: TarotHouseView().onAppear {
-                        // 切换标签模拟
-                    }) {
-                        Text("开通会员")
-                            .font(.callout)
-                            .padding(.horizontal, 12).padding(.vertical, 6)
-                            .background(Capsule().fill(
-                                LinearGradient(
-                                    colors: [Color(red: 0.9, green: 0.6, blue: 0.3),
-                                             Color(red: 1.0, green: 0.7, blue: 0.4)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing)))
-                            .foregroundColor(.black)
-                    }
-                } else {
-                    Text("有效期至 \(user.memberExpiryDate.formatted(date: .long, time: .omitted))")
-                        .font(.caption).foregroundColor(.white.opacity(0.8))
-                }
-            }
-
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Image(systemName: user.memberType == .none ? "xmark.circle" : "crown.fill")
-                            .foregroundColor(user.memberType == .none ? .red : Color(red: 1.0, green: 0.8, blue: 0.3))
-                        Text(user.memberType.description)
-                            .font(.body).foregroundColor(.white)
-                    }
+        NavigationLink(
+            destination: MembershipDetailView(memberType: user.memberType)
+        ) {
+            VStack(spacing: 15) {
+                HStack {
+                    Text("会员状态")
+                        .font(.headline)
+                        .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
+                    Spacer()
                     if user.memberType == .none {
-                        Text("开通会员解锁更多神秘力量")
-                            .font(.caption).foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
+                        Text("未开通")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.8))
                     } else {
-                        Text(user.memberType == .basic ? "快速占卜 35次/月" : "快速占卜 80次/月")
-                            .font(.caption).foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+                        Text("有效期至 \(user.memberExpiryDate.formatted(date: .long, time: .omitted))")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.8))
                     }
                 }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Image(systemName: user.memberType == .none ? "xmark.circle" : "crown.fill")
+                                .foregroundColor(user.memberType == .none ? .red : Color(red: 1.0, green: 0.8, blue: 0.3))
+                            Text(user.memberType.description)
+                                .font(.body).foregroundColor(.white)
+                        }
+                        if user.memberType == .none {
+                            Text("开通会员解锁更多神秘力量")
+                                .font(.caption).foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
+                        } else {
+                            Text(user.memberType == .basic ? "快速占卜 35次/月" : "快速占卜 80次/月")
+                                .font(.caption).foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+                        }
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+                }
             }
+            .padding(20)
+            .background(RoundedRectangle(cornerRadius: 20).fill(Color(red: 0.2, green: 0.15, blue: 0.4)))
+            .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(red: 0.5, green: 0.3, blue: 0.7), lineWidth: 1.5))
         }
-        .padding(20)
-        .background(RoundedRectangle(cornerRadius: 20).fill(Color(red: 0.2, green: 0.15, blue: 0.4)))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(
-                    LinearGradient(
-                        colors: user.memberType == .none ?
-                            [Color(red: 0.6, green: 0.1, blue: 0.1), Color(red: 0.8, green: 0.3, blue: 0.3)] :
-                            [Color(red: 0.8, green: 0.6, blue: 1.0), Color(red: 0.6, green: 0.3, blue: 0.8)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing),
-                    lineWidth: 1.5
-                )
-        )
+        .buttonStyle(PlainButtonStyle())
     }
 
     // MARK: - 通用设置组
