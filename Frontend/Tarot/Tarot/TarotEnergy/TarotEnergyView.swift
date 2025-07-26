@@ -19,18 +19,59 @@ struct TarotEnergyView: View {
                 StaticStarsView()
                 
                 ScrollView {
-                    VStack(spacing: 30) {
-                        // 顶部标题
-                        Text("塔罗宫能")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding(.top, 20)
-                            .shadow(color: .purple, radius: 5)
+                    VStack(spacing: 25) {
+                        // 顶部视觉分隔符（替代被移除的标题）
+                        Color.clear
+                            .frame(height: 10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 2)
+                                    .frame(width: 60, height: 4)
+                                    .foregroundColor(Color(red: 0.7, green: 0.3, blue: 0.9))
+                                    .opacity(0.6)
+                            )
+                            .padding(.top, 5)
                         
                         // 核心功能区域
-                        coreFunctionsSection
-                            .padding(.horizontal, 20)
+                        VStack(spacing: 15) {
+                            SectionHeader(title: "核心功能", subtitle: "探索塔罗的智慧")
+                            
+                            // 快速占卜卡片
+                            NavigationLink(destination: QuickDivinationView()) {
+                                optimizedFunctionCard(
+                                    icon: "sparkles",
+                                    title: "快速占卜",
+                                    description: "即时指引",
+                                    lastUsed: "2小时前",
+                                    color: Color(red: 0.85, green: 0.4, blue: 1.0),
+                                    hasAudio: false
+                                )
+                            }
+                            
+                            // 每日运势卡片
+                            NavigationLink(destination: DailyTopicsView()) {
+                                optimizedFunctionCard(
+                                    icon: "calendar",
+                                    title: "每日运势",
+                                    description: "今日能量",
+                                    lastUsed: "已解读",
+                                    color: Color(red: 0.7, green: 0.3, blue: 0.9),
+                                    hasAudio: true
+                                )
+                            }
+                            
+                            // 私人定制卡片
+                            NavigationLink(destination: PrivateDivinationView()) {
+                                optimizedFunctionCard(
+                                    icon: "person.fill.viewfinder",
+                                    title: "私人定制",
+                                    description: "专属占卜",
+                                    lastUsed: "最新: 昨天",
+                                    color: Color(red: 0.5, green: 0.2, blue: 0.7),
+                                    hasAudio: true
+                                )
+                            }
+                        }
+                        .padding(.horizontal, 15)
                         
                         // 进阶功能区域
                         advancedFunctionsSection
@@ -53,100 +94,168 @@ struct TarotEnergyView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // 增强导航栏标题 - 已优化设计
                 ToolbarItem(placement: .principal) {
-                    Text("塔罗宫能")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+                    VStack(spacing: 4) {
+                        // 主标题 - 更大更醒目 (32pt)
+                        Text("塔罗宫能")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .shadow(color: Color(red: 0.8, green: 0.3, blue: 1.0), radius: 5, x: 0, y: 2)
+                            .padding(.top, 5)
+                        
+                        // 副标题 - 移除背景避免浅白条
+                        Text("探索塔罗的智慧")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
+                            .opacity(0.9)
+                            .padding(.bottom, 5)
+                    }
                 }
             }
         }
     }
     
-    // MARK: - 核心功能区域
-    private var coreFunctionsSection: some View {
-        VStack(spacing: 20) {
-            SectionHeader(title: "核心功能", subtitle: "探索塔罗的智慧")
-            
-            LazyVGrid(
-                columns: [
-                    GridItem(.flexible(), spacing: 15),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ],
-                spacing: 15
-            ) {
-                NavigationLink(destination: QuickDivinationView()) {
-                    balancedFunctionCard(
-                        icon: "sparkles",
-                        title: "快速占卜",
-                        description: "即时指引",
-                        color: Color(red: 0.85, green: 0.4, blue: 1.0)
-                    )
-                }
-                
-                NavigationLink(destination: DailyTopicsView()) {
-                    balancedFunctionCard(
-                        icon: "calendar",
-                        title: "每日运势",
-                        description: "今日能量",
-                        color: Color(red: 0.7, green: 0.3, blue: 0.9)
-                    )
-                }
-                
-                NavigationLink(destination: PrivateDivinationView()) {
-                    balancedFunctionCard(
-                        icon: "person.fill.viewfinder",
-                        title: "私人定制",
-                        description: "专属占卜",
-                        color: Color(red: 0.5, green: 0.2, blue: 0.7)
-                    )
-                }
-            }
-        }
-    }
-    
-    private func balancedFunctionCard(icon: String, title: String, description: String, color: Color) -> some View {
-        VStack(spacing: 10) {
+    // MARK: - 优化后的功能卡片
+    private func optimizedFunctionCard(icon: String, title: String, description: String, lastUsed: String, color: Color, hasAudio: Bool) -> some View {
+        HStack(spacing: 15) {
+            // 左侧图标区域
             ZStack {
+                // 脉动光环
                 Circle()
-                    .fill(color.opacity(0.8))
+                    .fill(color.opacity(0.2))
+                    .frame(width: 70, height: 70)
+                
+                Circle()
+                    .stroke(color, lineWidth: 2)
                     .frame(width: 60, height: 60)
+                    .scaleEffect(1.1)
+                    .opacity(0.6)
+                    .animation(
+                        .easeInOut(duration: 1.5)
+                        .repeatForever(autoreverses: true),
+                        value: UUID()
+                    )
                 
                 Image(systemName: icon)
-                    .font(.title2)
+                    .font(.title)
                     .foregroundColor(.white)
             }
-            .padding(.top, 10)
+            .padding(.leading, 10)
             
-            Text(title)
-                .font(.headline)
-                .fontWeight(.medium)
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 5)
+            // 中间文本区域
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding(.top, 5)
+                
+                Text(description)
+                    .font(.callout)
+                    .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
+                
+                // 使用时间指示器
+                Text(lastUsed)
+                    .font(.caption)
+                    .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+                    .padding(.bottom, 5)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             
-            Text(description)
-                .font(.caption)
-                .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .padding(.bottom, 10)
-                .padding(.horizontal, 5)
+            // 右侧指示区域 - 优化布局
+            HStack(spacing: 8) {
+                // 声波动画放在箭头左侧
+                if hasAudio {
+                    AudioIndicatorWave()
+                        .frame(width: 40, height: 20)
+                }
+                
+                // 导航箭头
+                Image(systemName: "chevron.right")
+                    .font(.callout)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+            .padding(.trailing, 15)
         }
-        .frame(maxWidth: .infinity)
-        .padding(12)
+        .padding(.vertical, 15)
+        .frame(maxWidth: .infinity, minHeight: 120)
         .background(
-            RoundedRectangle(cornerRadius: 18)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(Color(red: 0.15, green: 0.07, blue: 0.3))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(color.opacity(0.4), lineWidth: 1)
+                )
+                .shadow(color: color.opacity(0.5), radius: 10, x: 0, y: 5)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(color.opacity(0.4), lineWidth: 1)
+            // 顶部星光效果
+            StarParticlesView()
+                .offset(y: -60)
+                .opacity(0.6)
         )
-        .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
+        .padding(.vertical, 5)
+    }
+    
+    // MARK: - 声音波纹指示器 (优化版)
+    struct AudioIndicatorWave: View {
+        @State private var waveHeights: [CGFloat] = [10, 16, 22, 16, 10]
+        
+        var body: some View {
+            HStack(spacing: 3) {
+                ForEach(0..<5, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 2)
+                        .frame(width: 3, height: waveHeights[index])
+                        .foregroundColor(Color(red: 0.8, green: 0.6, blue: 1.0))
+                        .animation(
+                            .easeInOut(duration: 0.6)
+                                .repeatForever(autoreverses: true)
+                                .delay(Double(index) * 0.1),
+                            value: waveHeights
+                        )
+                }
+            }
+            .onAppear {
+                withAnimation {
+                    waveHeights = [16, 22, 18, 22, 16]
+                }
+            }
+        }
+    }
+    
+    // MARK: - 星光粒子效果
+    struct StarParticlesView: View {
+        var body: some View {
+            ZStack {
+                ForEach(0..<8, id: \.self) { _ in
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 2, height: 2)
+                        .offset(x: CGFloat.random(in: -20...20), y: CGFloat.random(in: -20...20))
+                        .opacity(0)
+                        .modifier(ParticleAnimation())
+                }
+            }
+        }
+    }
+    
+    struct ParticleAnimation: ViewModifier {
+        @State private var isAnimating = false
+        
+        func body(content: Content) -> some View {
+            content
+                .scaleEffect(isAnimating ? 1.5 : 0.5)
+                .opacity(isAnimating ? 0 : 1)
+                .animation(
+                    .easeOut(duration: 1.5)
+                        .repeatForever(autoreverses: false),
+                    value: isAnimating
+                )
+                .onAppear {
+                    isAnimating = true
+                }
+        }
     }
     
     // MARK: - 进阶功能区域
@@ -569,11 +678,12 @@ enum ZodiacSign: String, CaseIterable {
     var score: Int { Int.random(in: 50...95) }
 }
 
-// MARK: - 预览
+// MARK: - 预览 (仅支持 iPhone 16 Pro)
 
 struct TarotEnergyView_Previews: PreviewProvider {
     static var previews: some View {
         TarotEnergyView()
             .preferredColorScheme(.dark)
+            .previewDevice("iPhone 16 Pro")
     }
 }
