@@ -19,6 +19,7 @@ struct QuickDivinationView: View {
     @State private var messages: [Message] = []
     @State private var inputText = ""
     @State private var isTyping = false
+    @State private var sentCount = 0   // 记录用户已发送次数
     
     // 深色风格配置
     private let backgroundColor = LinearGradient(
@@ -32,7 +33,6 @@ struct QuickDivinationView: View {
     
     // DeepSeek R1 模型与 API Key
     private let apiKey = "sk-04fc80568ef94b909fae278a5cd24475"
-    /// 将模型标识改为 DeepSeek 官方的 “deepseek-reasoner”
     private let modelName = "deepseek-reasoner"
     private let endpointURL = URL(string: "https://api.deepseek.com/v1/chat/completions")!
     
@@ -78,6 +78,14 @@ struct QuickDivinationView: View {
                                 scrollProxy.scrollTo("Bottom", anchor: .bottom)
                             }
                         }
+                    }
+                    
+                    // 占卜次数用尽提示
+                    if sentCount >= 2 {
+                        Text("本轮占卜次数已用完")
+                            .font(.footnote)
+                            .foregroundColor(.red)
+                            .padding(.bottom, 4)
                     }
                     
                     // 输入区
@@ -267,12 +275,12 @@ struct QuickDivinationView: View {
                         .font(.system(size: 30))
                         .symbolEffect(.bounce, value: UUID())
                         .foregroundColor(
-                            inputText.isEmpty
+                            inputText.isEmpty || sentCount >= 2
                                 ? Color(red: 0.5, green: 0.4, blue: 0.7)
                                 : Color(red: 0.8, green: 0.5, blue: 1.0)
                         )
                 }
-                .disabled(inputText.isEmpty)
+                .disabled(inputText.isEmpty || sentCount >= 2)
                 .padding(.trailing, 4)
             }
             .padding(.horizontal, 8)
@@ -285,6 +293,9 @@ struct QuickDivinationView: View {
     
     // MARK: - 发送消息
     private func sendMessage() {
+        guard sentCount < 2 else { return }
+        sentCount += 1
+        
         let userMessage = Message(
             content: inputText.trimmingCharacters(in: .whitespacesAndNewlines),
             isUser: true
@@ -320,7 +331,6 @@ struct QuickDivinationView: View {
             if let data = data, let body = String(data: data, encoding: .utf8) {
                 print("Response body:", body)
             }
-            
             DispatchQueue.main.async {
                 isTyping = false
                 guard
@@ -346,4 +356,3 @@ struct QuickDivinationView_Previews: PreviewProvider {
         }
     }
 }
-
