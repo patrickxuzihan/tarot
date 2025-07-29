@@ -14,6 +14,7 @@ export default function PasswordLoginView({ navigation, phoneNumber, onSuccess }
   const handleLogin = () => {
     if (password === '123456') {
       onSuccess();
+      navigation.navigate('Home');
     } else {
       setErrorMessage('密码错误，请重试');
     }

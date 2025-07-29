@@ -42,6 +42,7 @@ export default function VerificationView({ navigation, phoneNumber, onSuccess })
     Keyboard.dismiss();
     if (verificationCode === '123456') {
       onSuccess();
+      navigation.navigate('Home');
     } else {
       setErrorMessage('验证码错误，请重新输入');
       setVerificationCode('');
