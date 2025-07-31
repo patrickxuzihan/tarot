@@ -44,7 +44,17 @@ export default function LoginView({ navigation, setIsLoggedIn, setTempPhoneNumbe
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView ref={scrollViewRef} contentContainerStyle={{ paddingVertical: 120, minHeight: windowHeight + 300 }} keyboardShouldPersistTaps="handled">
           <View style={{ alignItems: 'center', marginBottom: 50 }}>
-            <Ionicons name="moon" size={100} color="#fff" />
+            {/* 修改点1：为月亮图标添加发光效果 */}
+            <Ionicons 
+              name="moon" 
+              size={100} 
+              color="#fff" 
+              style={{
+                textShadowColor: 'rgba(179, 102, 255, 0.8)',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 20,
+              }}
+            />
             <Text style={{ fontSize: 42, fontWeight: 'bold', color: '#fff', marginTop: 10 }}>梦多塔</Text>
             <Text style={{ color: '#D9B3FF', marginTop: 12, fontSize: 18 }}>你想要的塔罗未必只是塔罗</Text>
           </View>
