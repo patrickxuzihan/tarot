@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  SafeAreaView
+  SafeAreaView,
+  Animated,
+  PanResponder
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
 // 标签颜色集合
 const tagColors = [
@@ -106,6 +109,63 @@ export default function ForumScreen() {
   const [searchText, setSearchText] = useState('');
   const [selectedTag, setSelectedTag] = useState('全部');
   const navigation = useNavigation();
+  
+  // 可拖动按钮的位置状态
+  const buttonPosition = useRef(
+    new Animated.ValueXY({
+      x: screenWidth - 80,
+      y: screenHeight - 180
+    })
+  ).current;
+
+  // 创建拖动手势处理器（修复版本）
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      
+      onPanResponderGrant: (e, gestureState) => {
+        // 记录拖动开始时的位置
+        buttonPosition.setOffset({
+          x: buttonPosition.x._value,
+          y: buttonPosition.y._value
+        });
+        // 重置当前值
+        buttonPosition.setValue({ x: 0, y: 0 });
+      },
+      
+      onPanResponderMove: Animated.event(
+        [null, { dx: buttonPosition.x, dy: buttonPosition.y }],
+        { useNativeDriver: false }
+      ),
+      
+      onPanResponderRelease: (e, gestureState) => {
+        // 合并偏移量和当前值
+        buttonPosition.flattenOffset();
+        
+        // 边界处理
+        const buttonSize = 60;
+        const margin = 20;
+        const maxX = screenWidth - buttonSize - margin;
+        const maxY = screenHeight - buttonSize - margin;
+        
+        // 获取当前位置
+        const currentX = buttonPosition.x._value;
+        const currentY = buttonPosition.y._value;
+        
+        // 边界检查
+        const finalX = Math.max(margin, Math.min(currentX, maxX));
+        const finalY = Math.max(margin, Math.min(currentY, maxY));
+        
+        // 弹性动画
+        Animated.spring(buttonPosition, {
+          toValue: { x: finalX, y: finalY },
+          friction: 7,
+          useNativeDriver: false
+        }).start();
+      }
+    })
+  ).current;
 
   const filteredPosts = samplePosts.filter(
     (post) =>
@@ -182,7 +242,11 @@ export default function ForumScreen() {
       {/* 帖子列表 */}
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         {filteredPosts.map((post) => (
-          <TouchableOpacity key={post.id} style={styles.postCard}>
+          <TouchableOpacity 
+            key={post.id} 
+            style={styles.postCard}
+            onPress={() => navigation.navigate('PostDetail', { post })}
+          >
             <View style={styles.postTagContainer}>
               <Text style={styles.postTag}>#{post.tag}</Text>
             </View>
@@ -211,12 +275,27 @@ export default function ForumScreen() {
         ))}
       </ScrollView>
 
-      {/* 发帖按钮 */}
-      <TouchableOpacity style={styles.newPostButton}>
-        <View style={styles.newPostButtonInner}>
+      {/* 可拖动的新建帖子按钮（修复版本） */}
+      <Animated.View
+        style={[
+          styles.newPostButton, 
+          {
+            transform: [
+              { translateX: buttonPosition.x },
+              { translateY: buttonPosition.y }
+            ]
+          }
+        ]}
+        {...panResponder.panHandlers}
+      >
+        <TouchableOpacity 
+          style={styles.newPostButtonInner}
+          onPress={() => navigation.navigate('NewPost')}
+          activeOpacity={0.7}
+        >
           <Ionicons name="add" size={36} color="white" />
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -417,8 +496,6 @@ const styles = StyleSheet.create({
   },
   newPostButton: {
     position: 'absolute',
-    right: 20,
-    bottom: 40,
     backgroundColor: '#F0A500',
     width: 60,
     height: 60,
@@ -430,6 +507,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 8,
+    zIndex: 100, // 确保按钮在最上层
   },
   newPostButtonInner: {
     backgroundColor: '#311447',
