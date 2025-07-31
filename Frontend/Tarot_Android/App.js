@@ -86,7 +86,13 @@ export default function App() {
           )}
         </Stack.Screen>
 
-        <Stack.Screen name="Home" component={HomeView} />
+        <Stack.Screen 
+          name="Home" 
+          component={HomeView} 
+          options={{
+            gestureEnabled: false, // 关键修复：禁用此屏幕的返回手势
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
