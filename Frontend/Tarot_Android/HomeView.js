@@ -7,6 +7,8 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import QuickDivinationView from './Oracle/QuickDivinationView';
 import NotificationsView from './Notifications/NotificationsView';
+import NewPostView from './Forum/NewPostView';
+import PostDetailView from './Forum/PostDetailView'
 
 import HomeScreen from './HomeScreen';
 import ForumScreen from './Forum/ForumView';
@@ -36,6 +38,8 @@ function ForumStackScreen() {
     <ForumStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right'}}>
       <ForumStack.Screen name="Forum" component={ForumScreen} />
       <ForumStack.Screen name="Notifications" component={NotificationsView} />
+      <ForumStack.Screen name="NewPost" component={NewPostView} />
+      <ForumStack.Screen name="PostDetail" component={PostDetailView} />
     </ForumStack.Navigator>
   );
 }
