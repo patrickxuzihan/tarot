@@ -2,154 +2,153 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  ScrollView,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  Modal,
   StyleSheet,
-  Platform,
-  KeyboardAvoidingView
+  Modal,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 
-const topics = ["塔罗解读", "牌意讨论", "占卜经验", "问题求助", "其他"];
-
-export default function NewPostView() {
-  const navigation = useNavigation();
+const NewPostModal = ({ visible, onClose, onPublish }) => {
   const [postTitle, setPostTitle] = useState('');
   const [postContent, setPostContent] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('选择话题');
   const [showTopicPicker, setShowTopicPicker] = useState(false);
+  
+  const topics = ["塔罗解读", "牌意讨论", "占卜经验", "问题求助", "其他"];
 
   const handlePublish = () => {
-    // 模拟创建帖子的 API 调用
-    console.log('发布帖子:', { selectedTopic, postTitle, postContent });
-    
-    // 实际项目中应调用 API:
-    // ForumService.createPost(selectedTopic, postTitle, postContent)
-    //   .then(success => {
-    //     if (success) navigation.goBack();
-    //   });
-    
-    navigation.goBack();
-  };
-
-  const handleCancel = () => {
-    navigation.goBack();
+    onPublish({ selectedTopic, postTitle, postContent });
+    setPostTitle('');
+    setPostContent('');
+    setSelectedTopic('选择话题');
+    onClose();
   };
 
   return (
-    <LinearGradient
-      colors={['#260d40', '#3a235e']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
     >
-      {/* 头部导航栏 */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleCancel} style={styles.headerButton}>
-          <Text style={styles.headerButtonText}>取消</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.title}>发布新帖</Text>
-        
-        <TouchableOpacity 
-          onPress={() => console.log('保存草稿')}
-          style={styles.headerButton}
+      <View style={styles.modalContainer}>
+        <View style={styles.modalBackground} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalContent}
         >
-          <Text style={styles.headerButtonText}>草稿</Text>
-        </TouchableOpacity>
+          <LinearGradient
+            colors={['#260d40', '#3a235e']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.newPostContainer}
+          >
+            {/* 头部 */}
+            <View style={styles.newPostHeader}>
+              <TouchableOpacity onPress={onClose} style={styles.headerButton}>
+                <Text style={styles.headerButtonText}>取消</Text>
+              </TouchableOpacity>
+              
+              <Text style={styles.newPostTitle}>发布新帖</Text>
+              
+              <TouchableOpacity 
+                onPress={() => console.log('保存草稿')}
+                style={styles.headerButton}
+              >
+                <Text style={styles.headerButtonText}>草稿</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* 内容区域 */}
+            <ScrollView 
+              contentContainerStyle={styles.newPostContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* 话题选择 */}
+              <View style={styles.topicSection}>
+                <Text style={styles.sectionTitle}>选择话题</Text>
+                <TouchableOpacity 
+                  style={styles.topicPicker}
+                  onPress={() => setShowTopicPicker(true)}
+                >
+                  <Text style={[
+                    styles.topicText,
+                    selectedTopic === '选择话题' && styles.placeholderText
+                  ]}>
+                    {selectedTopic}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#aaa" />
+                </TouchableOpacity>
+              </View>
+
+              {/* 标题输入 */}
+              <View style={styles.titleSection}>
+                <Text style={styles.sectionTitle}>标题</Text>
+                <TextInput
+                  style={styles.titleInput}
+                  placeholder="输入帖子标题"
+                  placeholderTextColor="#999"
+                  value={postTitle}
+                  onChangeText={setPostTitle}
+                  selectionColor="#D9B3FF"
+                />
+              </View>
+
+              {/* 内容输入 */}
+              <View style={styles.contentSection}>
+                <Text style={styles.sectionTitle}>内容</Text>
+                <TextInput
+                  style={styles.contentInput}
+                  placeholder="输入帖子内容..."
+                  placeholderTextColor="#999"
+                  multiline
+                  numberOfLines={8}
+                  textAlignVertical="top"
+                  value={postContent}
+                  onChangeText={setPostContent}
+                  selectionColor="#D9B3FF"
+                />
+              </View>
+            </ScrollView>
+
+            {/* 发布按钮 */}
+            <TouchableOpacity
+              style={[
+                styles.publishButton,
+                (postTitle === '' || postContent === '' || selectedTopic === '选择话题') && 
+                  styles.disabledButton
+              ]}
+              onPress={handlePublish}
+              disabled={postTitle === '' || postContent === '' || selectedTopic === '选择话题'}
+            >
+              <LinearGradient
+                colors={['#B06BF0', '#8A40D0']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.publishGradient}
+              >
+                <Text style={styles.publishText}>发布</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </LinearGradient>
+        </KeyboardAvoidingView>
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* 话题选择器 */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>选择话题</Text>
-            
-            <TouchableOpacity 
-              style={styles.topicPicker}
-              onPress={() => setShowTopicPicker(true)}
-            >
-              <Text style={[
-                styles.topicText,
-                selectedTopic === '选择话题' && styles.placeholderText
-              ]}>
-                {selectedTopic}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color="#aaa" />
-            </TouchableOpacity>
-          </View>
-
-          {/* 标题输入 */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>标题</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="输入帖子标题"
-              placeholderTextColor="#999"
-              value={postTitle}
-              onChangeText={setPostTitle}
-              selectionColor="#D9B3FF"
-            />
-          </View>
-
-          {/* 内容输入 */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>内容</Text>
-            <TextInput
-              style={[styles.input, styles.contentInput]}
-              placeholder="输入帖子内容..."
-              placeholderTextColor="#999"
-              multiline
-              numberOfLines={8}
-              textAlignVertical="top"
-              value={postContent}
-              onChangeText={setPostContent}
-              selectionColor="#D9B3FF"
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-
-      {/* 发布按钮 */}
-      <TouchableOpacity
-        style={[
-          styles.publishButton,
-          (postTitle === '' || postContent === '' || selectedTopic === '选择话题') && 
-            styles.disabledButton
-        ]}
-        onPress={handlePublish}
-        disabled={postTitle === '' || postContent === '' || selectedTopic === '选择话题'}
-      >
-        <LinearGradient
-          colors={['#B06BF0', '#8A40D0']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradient}
-        >
-          <Text style={styles.publishText}>发布</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-
-      {/* 话题选择模态框 */}
+      {/* 话题选择器模态框 */}
       <Modal
         visible={showTopicPicker}
         transparent
         animationType="fade"
         onRequestClose={() => setShowTopicPicker(false)}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>选择话题</Text>
+        <View style={styles.topicPickerBackdrop}>
+          <View style={styles.topicPickerModal}>
+            <Text style={styles.topicPickerTitle}>选择话题</Text>
             
             {topics.map((topic) => (
               <TouchableOpacity
@@ -165,31 +164,50 @@ export default function NewPostView() {
             ))}
             
             <TouchableOpacity
-              style={styles.cancelOption}
+              style={styles.topicPickerCancel}
               onPress={() => setShowTopicPicker(false)}
             >
-              <Text style={styles.cancelText}>取消</Text>
+              <Text style={styles.topicPickerCancelText}>取消</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </LinearGradient>
+    </Modal>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalBackground: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    height: '85%',
+    width: '100%',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: 'hidden',
+  },
+  newPostContainer: {
     flex: 1,
   },
-  header: {
+  newPostHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: 50,
     backgroundColor: 'rgba(42, 17, 68, 0.8)',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+  },
+  newPostTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   headerButton: {
     padding: 8,
@@ -199,23 +217,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  title: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  content: {
+  newPostContent: {
     padding: 20,
     paddingBottom: 100,
   },
-  section: {
+  topicSection: {
     marginBottom: 25,
-  },
-  sectionTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
   },
   topicPicker: {
     flexDirection: 'row',
@@ -234,7 +241,10 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: '#aaa',
   },
-  input: {
+  titleSection: {
+    marginBottom: 25,
+  },
+  titleInput: {
     backgroundColor: 'rgba(90, 50, 120, 0.5)',
     borderRadius: 12,
     padding: 15,
@@ -243,9 +253,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
+  contentSection: {
+    marginBottom: 25,
+  },
   contentInput: {
+    backgroundColor: 'rgba(90, 50, 120, 0.5)',
+    borderRadius: 12,
+    padding: 15,
+    color: 'white',
+    fontSize: 16,
     minHeight: 200,
     textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   publishButton: {
     position: 'absolute',
@@ -263,7 +283,7 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.6,
   },
-  gradient: {
+  publishGradient: {
     padding: 16,
     alignItems: 'center',
   },
@@ -272,24 +292,26 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  modalBackdrop: {
+  
+  // 话题选择器样式
+  topicPickerBackdrop: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContent: {
+  topicPickerModal: {
     backgroundColor: '#3a235e',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 20,
     padding: 20,
-    paddingBottom: 30,
+    width: '80%',
   },
-  modalTitle: {
+  topicPickerTitle: {
     color: 'white',
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
   },
   topicOption: {
     padding: 15,
@@ -301,14 +323,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
   },
-  cancelOption: {
+  topicPickerCancel: {
     marginTop: 15,
     padding: 15,
   },
-  cancelText: {
+  topicPickerCancelText: {
     color: '#FF6B6B',
     fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
   },
 });
+
+export default NewPostModal;

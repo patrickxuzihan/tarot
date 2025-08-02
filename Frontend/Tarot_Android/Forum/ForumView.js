@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -10,20 +11,18 @@ import {
   SafeAreaView,
   Animated,
   PanResponder,
-  Modal,
-  KeyboardAvoidingView,
   Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import NewPostModal from './NewPostView'; // 导入新建帖子模态框组件
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
 // 标签颜色集合
 const tagColors = [
-  '#FF6B6B', '#4ECDC4', '#45B7D极', '#FFA94D', '#9C89B8', 
-  '#F0A500', '#D9B3FF', '#FFD166', '#06D6A0', '#118AB2',
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA94D', '#9C89B8', 
+  '#F0A500', '#D9B3FF', '#FFD166', '#FFA94D', '#118AB2',
   '#EF476F', '#FFD166', '#06D6A0', '#073B4C', '#118AB2'
 ];
 
@@ -99,7 +98,7 @@ const samplePosts = [
   {
     id: 7,
     tag: '塔罗教学',
-    author: '极塔罗导师',
+    author: '塔罗导师',
     title: '小阿卡纳解读技巧',
     content: '如何解读权杖、圣杯、宝剑、星币四组小阿卡纳牌？分享我的教学经验...',
     time: '2天前',
@@ -109,13 +108,10 @@ const samplePosts = [
 ];
 
 export default function ForumScreen() {
+  const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
   const [selectedTag, setSelectedTag] = useState('全部');
   const [showNewPost, setShowNewPost] = useState(false);
-  const [postTitle, setPostTitle] = useState('');
-  const [postContent, setPostContent] = useState('');
-  const [selectedTopic, setSelectedTopic] = useState('选择话题');
-  const [showTopicPicker, setShowTopicPicker] = useState(false);
   
   // 可拖动按钮的位置状态
   const buttonPosition = useRef(
@@ -181,11 +177,10 @@ export default function ForumScreen() {
       (post.title.includes(searchText) || post.content.includes(searchText))
   );
 
-  const topics = ["塔罗解读", "牌意讨论", "占卜经验", "问题求助", "其他"];
-
-  const handlePublish = () => {
-    console.log('发布帖子:', { selectedTopic, postTitle, postContent });
-    setShowNewPost(false);
+  const handlePublish = (postData) => {
+    console.log('发布帖子:', postData);
+    // 这里可以添加将新帖子添加到列表的逻辑
+    // 例如: setSamplePosts([...samplePosts, newPost])
   };
 
   return (
@@ -196,7 +191,7 @@ export default function ForumScreen() {
         <View style={styles.notificationContainer}>
           <TouchableOpacity 
             style={styles.notificationButton} 
-            onPress={() => console.log('通知按钮点击')}
+            onPress={() => navigation.navigate('Notifications')}
           >
             <Ionicons name="notifications-outline" size={26} color="white" />
           </TouchableOpacity>
@@ -204,7 +199,7 @@ export default function ForumScreen() {
       </View>
 
       {/* 搜索区域 */}
-      <View style极={styles.searchContainer}>
+      <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
           <Ionicons name="search" size={20} color="#ccc" style={styles.searchIcon} />
           <TextInput
@@ -216,7 +211,10 @@ export default function ForumScreen() {
           />
         </View>
         
-        <TouchableOpacity style={styles.filterButton}>
+        <TouchableOpacity 
+          style={styles.filterButton}
+          onPress={() => console.log('打开筛选菜单')}
+        >
           <Ionicons name="filter" size={24} color="white" />
         </TouchableOpacity>
       </View>
@@ -254,12 +252,15 @@ export default function ForumScreen() {
       </View>
 
       {/* 帖子列表 */}
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView 
+        contentContainerStyle={styles.postsContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {filteredPosts.map((post) => (
           <TouchableOpacity 
             key={post.id} 
             style={styles.postCard}
-            onPress={() => console.log('帖子点击', post.id)}
+            onPress={() => navigation.navigate('PostDetail', { post })}
           >
             <View style={styles.postTagContainer}>
               <Text style={styles.postTag}>#{post.tag}</Text>
@@ -311,150 +312,12 @@ export default function ForumScreen() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* 新建帖子模态框 */}
-      <Modal
-        animationType="slide"
-        transparent={true}
+      {/* 导入新建帖子模态框组件 */}
+      <NewPostModal
         visible={showNewPost}
-        onRequestClose={() => setShowNewPost(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalBackground} />
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.modalContent}
-          >
-            <LinearGradient
-              colors={['#260d40', '#3a235e']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.newPostContainer}
-            >
-              {/* 头部 */}
-              <View style={styles.newPostHeader}>
-                <TouchableOpacity onPress={() => setShowNewPost(false)} style={styles.headerButton}>
-                  <Text style={styles.headerButtonText}>取消</Text>
-                </TouchableOpacity>
-                
-                <Text style={styles.newPostTitle}>发布新帖</Text>
-                
-                <TouchableOpacity 
-                  onPress={() => console.log('保存草稿')}
-                  style={styles.headerButton}
-                >
-                  <Text style={styles.headerButtonText}>草稿</Text>
-                </TouchableOpacity>
-              </View>
-              
-              {/* 内容区域 */}
-              <ScrollView 
-                contentContainerStyle={styles.newPostContent}
-                keyboardShouldPersistTaps="handled"
-              >
-                {/* 话题选择 */}
-                <View style={styles.topicSection}>
-                  <Text style={styles.sectionTitle}>选择话题</Text>
-                  <TouchableOpacity 
-                    style={styles.topicPicker}
-                    onPress={() => setShowTopicPicker(true)}
-                  >
-                    <Text style={[
-                      styles.topicText,
-                      selectedTopic === '选择话题' && styles.placeholderText
-                    ]}>
-                      {selectedTopic}
-                    </Text>
-                    <Ionicons name="chevron-down" size={20} color="#aaa" />
-                  </TouchableOpacity>
-                </View>
-
-                {/* 标题输入 */}
-                <View style={styles.titleSection}>
-                  <Text style={styles.sectionTitle}>标题</Text>
-                  <TextInput
-                    style={styles.titleInput}
-                    placeholder="输入帖子标题"
-                    placeholderTextColor="#999"
-                    value={postTitle}
-                    onChangeText={setPostTitle}
-                    selectionColor="#D9B3FF"
-                  />
-                </View>
-
-                {/* 内容输入 */}
-                <View style={styles.contentSection}>
-                  <Text style={styles.sectionTitle}>内容</Text>
-                  <TextInput
-                    style={styles.contentInput}
-                    placeholder="输入帖子内容..."
-                    placeholderTextColor="#999"
-                    multiline
-                    numberOfLines={8}
-                    textAlignVertical="top"
-                    value={postContent}
-                    onChangeText={setPostContent}
-                    selectionColor="#D9B3FF"
-                  />
-                </View>
-              </ScrollView>
-
-              {/* 发布按钮 */}
-              <TouchableOpacity
-                style={[
-                  styles.publishButton,
-                  (postTitle === '' || postContent === '' || selectedTopic === '选择话题') && 
-                    styles.disabledButton
-                ]}
-                onPress={handlePublish}
-                disabled={postTitle === '' || postContent === '' || selectedTopic === '选择话题'}
-              >
-                <LinearGradient
-                  colors={['#B06BF0', '#8A40D0']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.publishGradient}
-                >
-                  <Text style={styles.publishText}>发布</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </LinearGradient>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
-
-      {/* 话题选择器模态框 */}
-      <Modal
-        visible={showTopicPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowTopicPicker(false)}
-      >
-        <View style={styles.topicPickerBackdrop}>
-          <View style={styles.topicPickerModal}>
-            <Text style={styles.topicPickerTitle}>选择话题</Text>
-            
-            {topics.map((topic) => (
-              <TouchableOpacity
-                key={topic}
-                style={styles.topicOption}
-                onPress={() => {
-                  setSelectedTopic(topic);
-                  setShowTopicPicker(false);
-                }}
-              >
-                <Text style={styles.topicOptionText}>{topic}</Text>
-              </TouchableOpacity>
-            ))}
-            
-            <TouchableOpacity
-              style={styles.topicPickerCancel}
-              onPress={() => setShowTopicPicker(false)}
-            >
-              <Text style={styles.topicPickerCancelText}>取消</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowNewPost(false)}
+        onPublish={handlePublish}
+      />
     </SafeAreaView>
   );
 }
@@ -465,7 +328,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#260D40' 
   },
   header: {
-    paddingTop: 50,
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
     paddingBottom: 20,
     backgroundColor: '#311447',
     flexDirection: 'row',
@@ -575,6 +438,10 @@ const styles = StyleSheet.create({
     color: '#260D40', 
     fontWeight: 'bold' 
   },
+  postsContainer: {
+    padding: 16,
+    paddingBottom: 100,
+  },
   postCard: {
     backgroundColor: '#3a235e',
     padding: 16,
@@ -632,7 +499,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic'
   },
   statsContainer: {
-    flexDirection: '极row',
+    flexDirection: 'row',
     marginTop: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
@@ -671,163 +538,5 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  
-  // 新建帖子模态框样式
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modalBackground: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    height: '85%',
-    width: '100%',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    overflow: 'hidden',
-  },
-  newPostContainer: {
-    flex: 1,
-  },
-  newPostHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: 'rgba(42, 17, 68, 0.8)',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  newPostTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  headerButton: {
-    padding: 8,
-  },
-  headerButtonText: {
-    color: '#D9B3FF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  newPostContent: {
-    padding: 20,
-    paddingBottom: 100,
-  },
-  topicSection: {
-    marginBottom: 25,
-  },
-  topicPicker: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(90, 50, 120, 0.5)',
-    borderRadius: 12,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  topicText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  placeholderText: {
-    color: '#aaa',
-  },
-  titleSection: {
-    marginBottom: 25,
-  },
-  titleInput: {
-    backgroundColor: 'rgba(90, 50, 120, 0.5)',
-    borderRadius: 12,
-    padding: 15,
-    color: 'white',
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  contentSection: {
-    marginBottom: 25,
-  },
-  contentInput: {
-    backgroundColor: 'rgba(90, 50, 120, 0.5)',
-    borderRadius: 12,
-    padding: 15,
-    color: 'white',
-    fontSize: 16,
-    minHeight: 200,
-    textAlignVertical: 'top',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  publishButton: {
-    position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 5,
-    shadowColor: '#8A40D0',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  publishGradient: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  publishText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  
-  // 话题选择器样式
-  topicPickerBackdrop: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  topicPickerModal: {
-    backgroundColor: '#3a235e',
-    borderRadius: 20,
-    padding: 20,
-    width: '80%',
-  },
-  topicPickerTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  topicOption: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  topicOptionText: {
-    color: 'white',
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  topicPickerCancel: {
-    marginTop: 15,
-    padding: 15,
-  },
-  topicPickerCancelText: {
-    color: '#FF6B6B',
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
   },
 });

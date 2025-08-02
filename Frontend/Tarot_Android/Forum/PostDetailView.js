@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
@@ -14,13 +13,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-// 评论数据结构
+// 评论数据结构 - 移除头像字段
 const Comment = {
   sampleComments: [
     {
       id: '1',
       author: '塔罗爱好者',
-      authorAvatar: require('../assets/avatar1.jpg'),
       content: '这个解读非常准确，我也抽到了恋人牌，真的遇到了心仪的对象！',
       timestamp: new Date(Date.now() - 1000 * 60 * 30),
       likes: 5
@@ -28,7 +26,6 @@ const Comment = {
     {
       id: '2',
       author: '神秘学研究者',
-      authorAvatar: require('../assets/avatar2.jpg'),
       content: '感谢分享，对于战车牌的解读很有启发，确实需要主动出击',
       timestamp: new Date(Date.now() - 1000 * 60 * 120),
       likes: 3
@@ -36,7 +33,6 @@ const Comment = {
     {
       id: '3',
       author: '新手占卜师',
-      authorAvatar: require('../assets/avatar3.jpg'),
       content: '请问对于逆位的圣杯九有什么特别的解读吗？',
       timestamp: new Date(Date.now() - 1000 * 60 * 180),
       likes: 2
@@ -50,31 +46,12 @@ export default function PostDetailView({ route }) {
   
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState(Comment.sampleComments);
-  const [isLiked, setIsLiked] = useState(post.isLiked || false);
+  const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes || 0);
   
   // 格式化时间
-  const formatTime = (date) => {
-    const now = new Date();
-    const diff = now - date;
-    
-    if (diff < 60 * 1000) return '刚刚';
-    if (diff < 60 * 60 * 1000) return `${Math.floor(diff / (60 * 1000))}分钟前`;
-    if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / (60 * 60 * 1000))}小时前`;
-    
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  };
-  
-  // 相对时间（如 "2小时前"）
-  const relativeTime = (date) => {
-    const now = new Date();
-    const diff = now - date;
-    
-    if (diff < 60 * 1000) return '刚刚';
-    if (diff < 60 * 60 * 1000) return `${Math.floor(diff / (60 * 1000))}分钟前`;
-    if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / (60 * 60 * 1000))}小时前`;
-    
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const formatTime = () => {
+    return post.time; // 直接使用ForumScreen中的时间格式
   };
   
   // 处理点赞
@@ -90,7 +67,6 @@ export default function PostDetailView({ route }) {
     const newComment = {
       id: String(comments.length + 1),
       author: '当前用户',
-      authorAvatar: require('../assets/current_user.jpg'),
       content: commentText,
       timestamp: new Date(),
       likes: 0
@@ -107,18 +83,28 @@ export default function PostDetailView({ route }) {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
+      {/* 添加的返回按钮 */}
+      <TouchableOpacity 
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="arrow-back" size={24} color="white" />
+      </TouchableOpacity>
+
       <ScrollView style={styles.scrollView}>
         {/* 帖子内容区域 */}
         <View style={styles.postContent}>
-          {/* 作者信息 */}
+          {/* 作者信息 - 移除头像 */}
           <View style={styles.authorInfo}>
-            <Image 
-              source={post.authorAvatar} 
-              style={styles.authorAvatar}
+            <Ionicons 
+              name="person-circle" 
+              size={40} 
+              color="#D9B3FF" 
+              style={styles.authorIcon}
             />
             <View style={styles.authorDetails}>
               <Text style={styles.authorName}>{post.author}</Text>
-              <Text style={styles.postTime}>{formatTime(post.time)}</Text>
+              <Text style={styles.postTime}>{formatTime()}</Text>
             </View>
             <TouchableOpacity style={styles.followButton}>
               <Text style={styles.followButtonText}>关注</Text>
@@ -129,19 +115,11 @@ export default function PostDetailView({ route }) {
           <Text style={styles.postTitle}>{post.title}</Text>
           
           {/* 标签 */}
-          {post.tags && post.tags.length > 0 && (
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.tagsContainer}
-            >
-              {post.tags.map((tag, index) => (
-                <View key={index} style={styles.tag}>
-                  <Text style={styles.tagText}>#{tag}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          )}
+          <View style={styles.tagContainer}>
+            <View style={styles.postTag}>
+              <Text style={styles.tagText}>#{post.tag}</Text>
+            </View>
+          </View>
           
           {/* 内容 */}
           <Text style={styles.postText}>{post.content}</Text>
@@ -182,20 +160,22 @@ export default function PostDetailView({ route }) {
           <Text style={styles.statsText}>{likeCount}人点赞 • {comments.length}条评论</Text>
         </View>
         
-        {/* 评论区域 */}
+        {/* 评论区域 - 移除头像 */}
         <View style={styles.commentsContainer}>
           <Text style={styles.commentsTitle}>评论</Text>
           
           {comments.map((comment) => (
             <View key={comment.id} style={styles.commentCard}>
-              <Image 
-                source={comment.authorAvatar} 
-                style={styles.commentAvatar}
+              <Ionicons 
+                name="person-circle" 
+                size={30} 
+                color="#D9B3FF" 
+                style={styles.commentIcon}
               />
               <View style={styles.commentContent}>
                 <View style={styles.commentHeader}>
                   <Text style={styles.commentAuthor}>{comment.author}</Text>
-                  <Text style={styles.commentTime}>{relativeTime(comment.timestamp)}</Text>
+                  <Text style={styles.commentTime}>{comment.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
                 </View>
                 <Text style={styles.commentText}>{comment.content}</Text>
                 <TouchableOpacity style={styles.commentAction}>
@@ -243,6 +223,22 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     padding: 15,
+    paddingTop: 60, // 增加顶部内边距避免按钮遮挡内容
+  },
+  // 新增返回按钮样式
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 20,
+    left: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(180, 120, 220, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   postContent: {
     backgroundColor: 'rgba(50, 25, 80, 0.6)',
@@ -255,16 +251,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  authorAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+  authorIcon: {
+    marginRight: 12,
   },
   authorDetails: {
     flex: 1,
-    marginLeft: 12,
   },
   authorName: {
     color: 'white',
@@ -294,15 +285,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
   },
-  tagsContainer: {
+  tagContainer: {
     marginBottom: 15,
   },
-  tag: {
+  postTag: {
     backgroundColor: 'rgba(180, 120, 220, 0.3)',
     borderRadius: 15,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginRight: 10,
+    alignSelf: 'flex-start',
   },
   tagText: {
     color: 'white',
@@ -355,16 +346,11 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
   },
-  commentAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+  commentIcon: {
+    marginRight: 12,
   },
   commentContent: {
     flex: 1,
-    marginLeft: 12,
   },
   commentHeader: {
     flexDirection: 'row',
