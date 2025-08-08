@@ -290,7 +290,7 @@ export default function TarotEnergyScreen() {
           >
             <TouchableOpacity
               style={[styles.card, { backgroundColor: '#7F3DFF' }]}
-              onPress={() => navigation.navigate('DailyTopicsPlaceholder')}
+              onPress={() => navigation.navigate('DailyTopics')}
             >
               <View style={styles.cardContent}>
                 <View style={styles.iconContainer}>
@@ -339,7 +339,7 @@ export default function TarotEnergyScreen() {
           >
             <TouchableOpacity
               style={[styles.card, { backgroundColor: '#5A2F9F' }]}
-              onPress={() => navigation.navigate('PrivateDivinationPlaceholder')}
+              onPress={() => navigation.navigate('PrivateDivination')}
             >
               <View style={styles.cardContent}>
                 <View style={styles.iconContainer}>
