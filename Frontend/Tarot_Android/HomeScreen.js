@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, SafeAreaView, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useAudio } from './Player/AudioContext'; // 引入音频上下文
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -18,6 +19,13 @@ export default function HomeScreen({ navigation }) {
   const starScale = useRef(new Animated.Value(1)).current;
   const starRotation = useRef(new Animated.Value(0)).current;
   const cardGlow = useRef(new Animated.Value(0)).current;
+
+  // 新增：音乐按钮动画值
+  const musicScale = useRef(new Animated.Value(1)).current;
+  const musicRotation = useRef(new Animated.Value(0)).current;
+
+  // 获取音频播放状态
+  const { isPlaying } = useAudio();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -80,6 +88,48 @@ export default function HomeScreen({ navigation }) {
     };
   }, [currentAdIndex]);
 
+  // 新增：音乐按钮动画效果
+  useEffect(() => {
+    if (isPlaying) {
+      // 当有音频播放时，启动动画
+      Animated.loop(
+        Animated.parallel([
+          // 缩放动画
+          Animated.sequence([
+            Animated.timing(musicScale, {
+              toValue: 1.3,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+            Animated.timing(musicScale, {
+              toValue: 1,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+          ]),
+          // 旋转动画
+          Animated.timing(musicRotation, {
+            toValue: 1,
+            duration: 3000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      // 停止动画并重置
+      musicScale.stopAnimation();
+      musicRotation.stopAnimation();
+      musicScale.setValue(1);
+      musicRotation.setValue(0);
+    }
+
+    return () => {
+      // 清理时停止动画
+      musicScale.stopAnimation();
+      musicRotation.stopAnimation();
+    };
+  }, [isPlaying]);
+
   // 旋转动画插值
   const rotateInterpolate = starRotation.interpolate({
     inputRange: [0, 1],
@@ -90,6 +140,12 @@ export default function HomeScreen({ navigation }) {
   const glowInterpolate = cardGlow.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 1]
+  });
+
+  // 音乐旋转动画插值
+  const musicRotateInterpolate = musicRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg']
   });
 
   // 每日塔罗话题数据
@@ -144,6 +200,17 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
           <TouchableOpacity style={styles.circleButton} onPress={() => navigation.navigate('我')}>
             <Ionicons name="settings-outline" size={24} color="white" style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.circleButton} onPress={() => navigation.navigate('Player')}>
+            {/* 音乐按钮动画 */}
+            <Animated.View style={{ 
+              transform: [
+                { scale: musicScale },
+                { rotate: musicRotateInterpolate }
+              ] 
+            }}>
+              <Ionicons name="musical-notes" size={24} color="white" style={styles.icon} />
+            </Animated.View>
           </TouchableOpacity>
         </View>
       </View>

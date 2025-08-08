@@ -9,6 +9,9 @@ import QuickDivinationView from './Oracle/QuickDivinationView';
 import NotificationsView from './Notifications/NotificationsView';
 import NewPostView from './Forum/NewPostView';
 import PostDetailView from './Forum/PostDetailView'
+import PlayerView from './Player/PlayerView';
+import PrivateDivinationView from './TarotEnergy/PrivateDivinationView';
+import DailyTopicsView from './TarotEnergy/DailyTopicsView';
 
 import HomeScreen from './HomeScreen';
 import ForumScreen from './Forum/ForumView';
@@ -29,6 +32,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeStack.Screen name="QuickDivination" component={QuickDivinationView} />
       <HomeStack.Screen name="Notifications" component={NotificationsView} />
+      <HomeStack.Screen name="Player" component={PlayerView} />
     </HomeStack.Navigator>
   );
 }
@@ -49,6 +53,8 @@ function TarotEnergyStackScreen() {
     <TarotEnergyStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right'}}>
       <TarotEnergyStack.Screen name="TarotEnergyMain" component={TarotEnergyScreen} />
       <TarotEnergyStack.Screen name="QuickDivination" component={QuickDivinationView} />
+      <TarotEnergyStack.Screen name="DailyTopics" component={DailyTopicsView} />
+      <TarotEnergyStack.Screen name="PrivateDivination" component={PrivateDivinationView} />
     </TarotEnergyStack.Navigator>
   );
 }
@@ -74,7 +80,12 @@ export default function HomeView() {
     React.useCallback(() => {
       const onBackPress = () => true;
       BackHandler.addEventListener('hardwareBackPress', onBackPress);
-      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      
+      return () => {
+        if (typeof BackHandler.removeEventListener === 'function') {
+          BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        }
+      };
     }, [])
   );
 
