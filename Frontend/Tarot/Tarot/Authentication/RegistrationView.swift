@@ -3,6 +3,8 @@ import SwiftUI
 struct RegistrationView: View {
     let phoneNumber: String
 
+    @EnvironmentObject var theme: ThemeManager
+
     @State private var verificationCode = ""
     @State private var password = ""
     @State private var confirmPassword = ""
@@ -41,20 +43,13 @@ struct RegistrationView: View {
         }
     }
 
-    // MARK: – UI
     var body: some View {
-        ZStack(alignment: .topLeading) {
+        let p = theme.selected.palette
 
+        ZStack(alignment: .topLeading) {
             // 背景
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.15, green: 0.05, blue: 0.25),
-                    Color(red: 0.25, green: 0.1, blue: 0.4)
-                ]),
-                startPoint: .top, endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            .onTapGesture { hideKeyboard() }
+            p.bgGradient.ignoresSafeArea()
+                .onTapGesture { hideKeyboard() }
 
             // 主内容
             ScrollView {
@@ -64,32 +59,32 @@ struct RegistrationView: View {
                     VStack(spacing: 6) {
                         Text("创建账号")
                             .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(.white)
-                            .shadow(color: .purple, radius: 8)
+                            .foregroundColor(p.textPrimary)
+                            .shadow(color: p.textSecondary, radius: 8)
                         Text("欢迎加入梦多塔")
                             .font(.headline)
-                            .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+                            .foregroundColor(p.textSecondary)
                     }
-                    .padding(.top, 74)   // 让内容从按钮下方开始
+                    .padding(.top, 74)
 
                     // 手机号与验证码
-                    phoneVerifySection
+                    phoneVerifySection(p)
 
-                    // 昵称（提前到密码之前）
-                    nicknameSection
+                    // 昵称
+                    nicknameSection(p)
 
                     // 密码与确认
-                    passwordSection
+                    passwordSection(p)
 
                     // 注册按钮
-                    registerButton
+                    registerButton(p)
 
-                    // 底部返回登录
+                    // 返回登录
                     Button("返回登录页面") {
                         presentationMode.wrappedValue.dismiss()
                     }
                     .font(.subheadline)
-                    .foregroundColor(Color(red: 0.8, green: 0.6, blue: 1.0))
+                    .foregroundColor(p.textSecondary)
                     .padding(.top, 8)
 
                     Spacer(minLength: 30)
@@ -97,16 +92,16 @@ struct RegistrationView: View {
                 .padding(.horizontal, 28)
             }
 
-            // 返回按钮—放在最后声明，置于最上层
+            // 返回按钮
             Button(action: { presentationMode.wrappedValue.dismiss() }) {
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.left")
                     Text("返回登录")
                 }
                 .font(.subheadline.weight(.bold))
-                .foregroundColor(.white)
+                .foregroundColor(p.textPrimary)
                 .padding(10)
-                .background(Color.purple.opacity(0.3))
+                .background(p.textPrimary.opacity(0.08))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             }
             .padding(.leading, 16)
@@ -120,36 +115,37 @@ struct RegistrationView: View {
     }
 
     // MARK: – 子视图
-    private var phoneVerifySection: some View {
+    private func phoneVerifySection(_ p: ThemePalette) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("手机验证")
                 .font(.headline)
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(p.textPrimary.opacity(0.8))
 
             // 手机号展示
             HStack {
                 Text(phoneNumber)
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(p.textPrimary)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 15).fill(Color.purple.opacity(0.2)))
+                    .background(RoundedRectangle(cornerRadius: 15).fill(p.textPrimary.opacity(0.08)))
 
                 Button("更换") { presentationMode.wrappedValue.dismiss() }
                     .font(.subheadline)
-                    .foregroundColor(Color(red: 0.8, green: 0.4, blue: 1.0))
+                    .foregroundColor(p.textSecondary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 6)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.purple.opacity(0.3)))
+                    .background(RoundedRectangle(cornerRadius: 12).fill(p.textPrimary.opacity(0.08)))
             }
 
             // 输入验证码
             HStack(spacing: 10) {
                 TextField("请输入6位验证码", text: $verificationCode)
                     .keyboardType(.numberPad)
-                    .foregroundColor(.white)
+                    .foregroundColor(p.textPrimary)
                     .padding()
-                    .background(RoundedRectangle(cornerRadius: 15).fill(Color.purple.opacity(0.2)))
+                    .background(RoundedRectangle(cornerRadius: 15).fill(p.textPrimary.opacity(0.08)))
+                    .overlay(RoundedRectangle(cornerRadius: 15).stroke(p.textPrimary.opacity(0.25), lineWidth: 1))
                     .onChange(of: verificationCode) { _, newValue in
                         if newValue.count > 6 { verificationCode = String(newValue.prefix(6)) }
                     }
@@ -157,15 +153,15 @@ struct RegistrationView: View {
                 Button(action: sendVerificationCode) {
                     Text(isVerificationCodeSent && countdownTimer > 0 ? "\(countdownTimer)s" : "获取验证码")
                         .font(.subheadline)
-                        .foregroundColor(.white)
+                        .foregroundColor(p.textPrimary)
                         .frame(width: 90)
                         .padding(10)
                         .background(
                             RoundedRectangle(cornerRadius: 15)
                                 .fill(
                                     (isVerificationCodeSent && countdownTimer > 0)
-                                    ? Color.gray.opacity(0.5)
-                                    : Color(red: 0.6, green: 0.2, blue: 0.8).opacity(0.8)
+                                    ? AnyShapeStyle(Color.gray.opacity(0.5))
+                                    : AnyShapeStyle(p.buttonGradient)
                                 )
                         )
                 }
@@ -175,20 +171,21 @@ struct RegistrationView: View {
             if isVerificationCodeSent {
                 Text("验证码已发送至您的手机")
                     .font(.caption)
-                    .foregroundColor(Color(red: 0.6, green: 0.8, blue: 1.0))
+                    .foregroundColor(p.textSecondary)
             }
         }
     }
 
-    private var nicknameSection: some View {
+    private func nicknameSection(_ p: ThemePalette) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("用户昵称")
                 .font(.headline)
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(p.textPrimary.opacity(0.8))
             TextField("输入您的个性昵称", text: $nickname)
-                .foregroundColor(.white)
+                .foregroundColor(p.textPrimary)
                 .padding()
-                .background(RoundedRectangle(cornerRadius: 15).fill(Color.purple.opacity(0.2)))
+                .background(RoundedRectangle(cornerRadius: 15).fill(p.textPrimary.opacity(0.08)))
+                .overlay(RoundedRectangle(cornerRadius: 15).stroke(p.textPrimary.opacity(0.25), lineWidth: 1))
             if nickname.count > 0 && nickname.count < 2 {
                 Text("昵称至少需要2个字符")
                     .font(.caption)
@@ -197,29 +194,28 @@ struct RegistrationView: View {
         }
     }
 
-    private var passwordSection: some View {
+    private func passwordSection(_ p: ThemePalette) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("设置密码")
                 .font(.headline)
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(p.textPrimary.opacity(0.8))
 
             SecureField("密码（至少6位，含大小写、数字、符号）", text: $password)
-                .foregroundColor(.white)
+                .foregroundColor(p.textPrimary)
                 .padding()
-                .background(RoundedRectangle(cornerRadius: 15).fill(Color.purple.opacity(0.2)))
+                .background(RoundedRectangle(cornerRadius: 15).fill(p.textPrimary.opacity(0.08)))
+                .overlay(RoundedRectangle(cornerRadius: 15).stroke(p.textPrimary.opacity(0.25), lineWidth: 1))
                 .onChange(of: password) { _, _ in }
 
-            // 密码提示
             Text("必须包含：大写、小写、数字、符号；长度≥6")
                 .font(.caption2)
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(p.textPrimary.opacity(0.7))
 
-            // 强度显示
             if !password.isEmpty {
                 HStack(spacing: 6) {
                     Text("强度：")
                         .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(p.textPrimary.opacity(0.8))
                     Text(passwordStrength.text)
                         .font(.caption)
                         .foregroundColor(passwordStrength.color)
@@ -227,15 +223,15 @@ struct RegistrationView: View {
                 }
             }
 
-            // 确认密码
             VStack(alignment: .leading, spacing: 6) {
                 Text("确认密码")
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(p.textPrimary.opacity(0.8))
                 SecureField("再次输入密码以确认", text: $confirmPassword)
-                    .foregroundColor(.white)
+                    .foregroundColor(p.textPrimary)
                     .padding()
-                    .background(RoundedRectangle(cornerRadius: 15).fill(Color.purple.opacity(0.2)))
+                    .background(RoundedRectangle(cornerRadius: 15).fill(p.textPrimary.opacity(0.08)))
+                    .overlay(RoundedRectangle(cornerRadius: 15).stroke(p.textPrimary.opacity(0.25), lineWidth: 1))
             }
 
             if !password.isEmpty && !confirmPassword.isEmpty && password != confirmPassword {
@@ -257,27 +253,28 @@ struct RegistrationView: View {
         .frame(width: 80)
     }
 
-    private var registerButton: some View {
+    private func registerButton(_ p: ThemePalette) -> some View {
         Button(action: registerAction) {
             Text("完成注册")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(p.textInverse)
                 .padding()
                 .frame(maxWidth: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 15).fill(
                         isValidRegistration
-                        ? LinearGradient(
-                            colors: [.purple, Color(red: 0.5, green: 0, blue: 0.8)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        )
-                        : LinearGradient(
+                        ? AnyShapeStyle(p.buttonGradient)
+                        : AnyShapeStyle(LinearGradient(
                             colors: [Color.gray.opacity(0.4), Color.gray.opacity(0.6)],
                             startPoint: .top, endPoint: .bottom
-                        )
+                        ))
                     )
                 )
-                .shadow(color: isValidRegistration ? .purple.opacity(0.8) : .clear, radius: 10, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15).stroke(p.buttonStroke, lineWidth: 1)
+                        .opacity(isValidRegistration ? 1 : 0)
+                )
+                .shadow(color: isValidRegistration ? p.textSecondary.opacity(0.8) : .clear, radius: 10, y: 4)
         }
         .disabled(!isValidRegistration)
         .opacity(isValidRegistration ? 1 : 0.7)
@@ -287,10 +284,6 @@ struct RegistrationView: View {
     }
 
     // MARK: – 工具
-    private func passwordStrengthIndex(_ i: Int) -> Bool {
-        passwordStrengthScore() >= i + 1
-    }
-
     private func passwordStrengthScore() -> Int {
         guard password.count >= 6 else { return 0 }
         var s = 0
@@ -344,7 +337,7 @@ struct RegistrationView: View {
     }
 }
 
-// MARK: – ViewModel & Model （保持原样）
+// MARK: – ViewModel & Model（保持原样）
 class RegistrationViewModel: ObservableObject {
     func sendVerificationCode(to phone: String, completion: @escaping (Bool) -> Void) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
@@ -408,7 +401,14 @@ extension String {
 // MARK: – 预览
 struct RegistrationView_Previews: PreviewProvider {
     static var previews: some View {
-        RegistrationView(phoneNumber: "13800138000")
-            .preferredColorScheme(.dark)
+        Group {
+            RegistrationView(phoneNumber: "13800138000")
+                .environmentObject(ThemeManager(default: .silverNoir, persist: false))
+                .previewDisplayName("银黑")
+
+            RegistrationView(phoneNumber: "13800138000")
+                .environmentObject(ThemeManager(default: .mysticPurple, persist: false))
+                .previewDisplayName("梦幻紫")
+        }
     }
 }

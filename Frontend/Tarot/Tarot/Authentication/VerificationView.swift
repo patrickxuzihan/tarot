@@ -5,6 +5,7 @@ struct VerificationView: View {
     let phoneNumber: String
     let onSuccess: () -> Void
 
+    @EnvironmentObject var theme: ThemeManager
     @Environment(\.presentationMode) private var presentationMode
 
     @State private var verificationCode = ""
@@ -22,25 +23,20 @@ struct VerificationView: View {
     }
 
     var body: some View {
+        let p = theme.selected.palette
+
         ZStack {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.15, green: 0.05, blue: 0.25),
-                    Color(red: 0.25, green: 0.1, blue: 0.4)
-                ]),
-                startPoint: .top, endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            p.bgGradient.ignoresSafeArea()
 
             GeometryReader { geometry in
                 ScrollView {
                     VStack(spacing: 30) {
-                        backButton
-                        headerSection
-                        codeSection
-                        resendButton
-                        verifyButton
-                        passwordLoginLink
+                        backButton(p)
+                        headerSection(p)
+                        codeSection(p)
+                        resendButton(p)
+                        verifyButton(p)
+                        passwordLoginLink(p)
                         Spacer()
                     }
                     .padding(.top, 40)
@@ -60,7 +56,6 @@ struct VerificationView: View {
                     onSuccess()
                 }
             )
-            .preferredColorScheme(.dark)
         }
         .onAppear {
             isCodeFieldFocused = true
@@ -73,8 +68,7 @@ struct VerificationView: View {
     }
 
     // MARK: - 头部、返回按钮等
-
-    private var backButton: some View {
+    private func backButton(_ p: ThemePalette) -> some View {
         HStack {
             Button {
                 presentationMode.wrappedValue.dismiss()
@@ -84,47 +78,42 @@ struct VerificationView: View {
                     Text("返回登录")
                 }
                 .font(.subheadline.bold())
-                .foregroundColor(.white)
+                .foregroundColor(p.textPrimary)
                 .padding(8)
-                .background(Color.purple.opacity(0.3))
+                .background(p.textPrimary.opacity(0.08))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             Spacer()
         }
     }
 
-    private var headerSection: some View {
+    private func headerSection(_ p: ThemePalette) -> some View {
         VStack(spacing: 15) {
             RoundedRectangle(cornerRadius: 20)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(red: 0.7, green: 0.5, blue: 1.0), .purple],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    )
-                )
+                .fill(p.cardFill)
                 .frame(width: 100, height: 180)
-                .shadow(color: .purple.opacity(0.8), radius: 10)
+                .shadow(color: p.textSecondary.opacity(0.8), radius: 10)
                 .overlay(
                     Image(systemName: "envelope.fill")
                         .font(.system(size: 50))
-                        .foregroundColor(.white)
+                        .foregroundColor(p.iconPrimary)
                 )
 
             Text("短信验证码")
                 .font(.title2.bold())
-                .foregroundColor(.white)
-                .shadow(color: .purple, radius: 5)
+                .foregroundColor(p.textPrimary)
+                .shadow(color: p.textSecondary, radius: 5)
 
             Text("验证码已发送至")
                 .font(.headline)
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(p.textPrimary.opacity(0.8))
 
             Text(phoneNumber)
                 .font(.title3.bold())
-                .foregroundColor(.white)
+                .foregroundColor(p.textPrimary)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 8)
-                .background(Color.purple.opacity(0.3))
+                .background(p.textPrimary.opacity(0.08))
                 .cornerRadius(10)
 
             if let msg = errorMessage {
@@ -136,12 +125,11 @@ struct VerificationView: View {
     }
 
     // MARK: - 验证码输入
-
-    private var codeSection: some View {
+    private func codeSection(_ p: ThemePalette) -> some View {
         VStack(spacing: 15) {
             Text("请输入6位验证码")
                 .font(.subheadline)
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(p.textPrimary.opacity(0.8))
 
             TextField("", text: $verificationCode)
                 .keyboardType(.numberPad)
@@ -150,29 +138,20 @@ struct VerificationView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .keyboard) {
                         Spacer()
-                        Button("完成") {
-                            hideKeyboard()
-                        }
-                        // 强制设回普通 body 字体
-                        .font(.body)
+                        Button("完成") { hideKeyboard() }
+                            .font(.body)
                     }
                 }
                 .multilineTextAlignment(.center)
-                // 只影响输入框本身的文字
                 .font(.system(size: 28, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(p.textPrimary)
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 15)
-                                .fill(Color.purple.opacity(0.3)))
+                                .fill(p.textPrimary.opacity(0.08)))
                 .overlay(RoundedRectangle(cornerRadius: 15)
-                            .stroke(
-                                errorMessage != nil
-                                  ? Color.red
-                                  : Color.white.opacity(0.2),
-                                lineWidth: 1
-                            ))
+                            .stroke(errorMessage != nil ? Color.red : p.textPrimary.opacity(0.2), lineWidth: 1))
                 .frame(maxWidth: 220)
-                .onChange(of: verificationCode) { old, new in
+                .onChange(of: verificationCode) { _, new in
                     errorMessage = nil
                     var filtered = new.filter(\.isNumber)
                     if filtered.count > 6 {
@@ -184,8 +163,7 @@ struct VerificationView: View {
     }
 
     // MARK: - 其他按钮
-
-    private var resendButton: some View {
+    private func resendButton(_ p: ThemePalette) -> some View {
         Button(action: resendCode) {
             Text(isCountingDown
                  ? "重新获取验证码 (\(countdown)s)"
@@ -193,36 +171,33 @@ struct VerificationView: View {
                 .font(.footnote)
                 .fontWeight(isCountingDown ? .regular : .bold)
                 .foregroundColor(isCountingDown
-                                 ? .white.opacity(0.6)
-                                 : Color(red: 0.8, green: 0.5, blue: 1.0))
+                                 ? p.textPrimary.opacity(0.6)
+                                 : p.textSecondary)
                 .padding(.vertical, 10)
         }
         .disabled(isCountingDown)
     }
 
-    private var verifyButton: some View {
+    private func verifyButton(_ p: ThemePalette) -> some View {
         Button(action: verifyAction) {
             Text("验证并进入")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(p.textInverse)
                 .padding()
                 .frame(maxWidth: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 15)
                         .fill(
                             isValidVerification
-                            ? AnyShapeStyle(
-                                LinearGradient(
-                                   colors: [.purple, Color(red: 0.5, green: 0, blue: 0.8)],
-                                   startPoint: .topLeading, endPoint: .bottomTrailing
-                                )
-                              )
+                            ? AnyShapeStyle(p.buttonGradient)
                             : AnyShapeStyle(Color.gray.opacity(0.5))
                         )
                 )
-                .shadow(color: isValidVerification
-                        ? .purple.opacity(0.8)
-                        : .clear,
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15).stroke(p.buttonStroke, lineWidth: 1)
+                        .opacity(isValidVerification ? 1 : 0)
+                )
+                .shadow(color: isValidVerification ? p.textSecondary.opacity(0.8) : .clear,
                         radius: 10, y: 5)
         }
         .disabled(!isValidVerification)
@@ -232,20 +207,17 @@ struct VerificationView: View {
         .animation(.spring(), value: isValidVerification)
     }
 
-    private var passwordLoginLink: some View {
-        Button {
-            showPasswordLogin = true
-        } label: {
+    private func passwordLoginLink(_ p: ThemePalette) -> some View {
+        Button { showPasswordLogin = true } label: {
             Text("没收到验证码？尝试账号密码登录")
                 .font(.footnote)
                 .underline()
-                .foregroundColor(Color(red: 0.8, green: 0.6, blue: 1.0))
+                .foregroundColor(p.textSecondary)
         }
         .padding(.top, 6)
     }
 
     // MARK: - 功能方法
-
     private func resendCode() {
         sendVerificationCode()
         resetCountdown()
@@ -303,7 +275,14 @@ struct VerificationView: View {
 
 struct VerificationView_Previews: PreviewProvider {
     static var previews: some View {
-        VerificationView(phoneNumber: "18888888888", onSuccess: {})
-            .preferredColorScheme(.dark)
+        Group {
+            VerificationView(phoneNumber: "18888888888", onSuccess: {})
+                .environmentObject(ThemeManager(default: .silverNoir, persist: false))
+                .previewDisplayName("银黑")
+
+            VerificationView(phoneNumber: "18888888888", onSuccess: {})
+                .environmentObject(ThemeManager(default: .mysticPurple, persist: false))
+                .previewDisplayName("梦幻紫")
+        }
     }
 }
