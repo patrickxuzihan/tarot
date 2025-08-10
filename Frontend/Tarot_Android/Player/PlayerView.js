@@ -1,13 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, BackHandler, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAudio } from './AudioContext';
-import * as FileSystem from 'expo-file-system'; // 用于处理文件路径
-import { Asset } from 'expo-asset'; // 正确导入 Asset
+import * as FileSystem from 'expo-file-system';
+import { Asset } from 'expo-asset';
+import Slider from '@react-native-community/slider';
+
+const formatTime = (millis = 0) => {
+  const total = Math.max(0, Math.floor(millis / 1000));
+  const m = Math.floor(total / 60).toString().padStart(2, '0');
+  const s = Math.floor(total % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+};
 
 export default function PlayerView() {
   const navigation = useNavigation();
+
   const {
     currentAudio,
     isPlaying,
@@ -19,170 +28,118 @@ export default function PlayerView() {
     pauseAudio,
     resumeAudio,
     skipForward,
-    skipBackward
+    skipBackward,
+    seekTo,
   } = useAudio();
 
-  // 处理返回按钮（导航回退）
+  const [seekingValue, setSeekingValue] = useState(null);
+  const [seeking, setSeeking] = useState(false);
+
   useEffect(() => {
-    const backAction = () => {
+    const onBackPress = () => {
       navigation.goBack();
-      return true; // 阻止默认返回行为
+      return true;
     };
-
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
-
-    return () => backHandler.remove();
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
   }, [navigation]);
 
-  // 修复后的测试音频播放函数
-  const playTestAudio = async () => {
-    try {
-      // 使用 expo-asset 正确加载本地资源
-      const asset = Asset.fromModule(require('./sample.mp3'));
-      
-      // 确保资源已下载
-      if (!asset.localUri) {
-        await asset.downloadAsync();
-      }
-      
-      // 播放本地文件
-      playNewAudio({ 
-        uri: asset.localUri,
-        title: '测试音频',
-        artist: '梦多塔'
-      });
-    } catch (e) {
-      console.error('测试音频加载失败', e);
+  const onPlayPause = async () => {
+    if (isPlaying) {
+      await pauseAudio();
+    } else {
+      await resumeAudio();
     }
   };
 
-  // 格式化时间为分钟:秒
-  const formatTime = (milliseconds) => {
-    if (isNaN(milliseconds) || milliseconds === null) return '0:00';
-    
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  const playSample = async () => {
+    try {
+      const asset = Asset.fromModule(require('./sample.mp3'));
+      await asset.downloadAsync();
+      const uri = asset.localUri || asset.uri;
+      await playNewAudio({ uri });
+    } catch (e) {
+      console.error('加载 sample.mp3 失败:', e);
+    }
   };
 
-  // 计算进度条百分比
-  const progressPercentage = duration > 0 ? (position / duration) * 100 : 0;
+  const effectivePos = seeking ? seekingValue : position;
+  const safeDuration = Math.max(duration || 0, 1);
 
   return (
     <View style={styles.container}>
-      {/* 返回按钮 */}
-      <TouchableOpacity 
-        style={styles.backButton} 
-        onPress={() => navigation.goBack()}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="arrow-back" size={24} color="white" />
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={28} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.title} numberOfLines={1}>
+          {currentAudio?.title || '正在播放'}
+        </Text>
+        <View style={{ width: 28 }} />
+      </View>
 
-      {/* 播放器内容 */}
       <View style={styles.content}>
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#FFD700" />
-            <Text style={styles.loadingText}>加载音频中...</Text>
+        {/* 添加音符Logo */}
+        <View style={styles.logoContainer}>
+          <Ionicons name="musical-notes" size={120} color="#FFD700" />
+        </View>
+
+        {isLoading && (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" />
+            <Text style={styles.loadingText}>加载中…</Text>
           </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle" size={48} color="#ff6b6b" />
-            <Text style={styles.errorText}>播放失败: {error}</Text>
-            
-            {/* 添加错误处理按钮 */}
-            <TouchableOpacity 
-              style={styles.retryButton}
-              onPress={playTestAudio}
-            >
-              <Text style={styles.retryText}>重试</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            <Text style={styles.title}>正在播放</Text>
-            <Text style={styles.subtitle}>
-              {currentAudio?.title || '未知音频'}
-            </Text>
-            
-            {/* 音频信息 */}
-            {currentAudio?.artist && (
-              <Text style={styles.artistText}>{currentAudio.artist}</Text>
-            )}
-            
-            {/* 进度条 */}
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${progressPercentage}%` }]} />
-            </View>
-            
-            {/* 时间显示 */}
-            <View style={styles.timeContainer}>
-              <Text style={styles.timeText}>{formatTime(position)}</Text>
-              <Text style={styles.timeText}>{formatTime(duration)}</Text>
-            </View>
-            
-            {/* 控制按钮 */}
-            <View style={styles.controls}>
-              <TouchableOpacity 
-                onPress={() => skipBackward(15000)} 
-                style={styles.controlButton}
-                activeOpacity={0.7}
-              >
-                <Ionicons 
-                  name="play-back" 
-                  size={32} 
-                  color="white" 
-                />
-                <Text style={styles.controlText}>
-                  -15s
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                onPress={isPlaying ? pauseAudio : resumeAudio} 
-                style={styles.playButton}
-                activeOpacity={0.7}
-              >
-                <Ionicons 
-                  name={isPlaying ? "pause" : "play"} 
-                  size={40} 
-                  color="black" 
-                  style={isPlaying ? {} : { marginLeft: 4 }}
-                />
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                onPress={() => skipForward(15000)} 
-                style={styles.controlButton}
-                activeOpacity={0.7}
-              >
-                <Ionicons 
-                  name="play-forward" 
-                  size={32} 
-                  color="white" 
-                />
-                <Text style={styles.controlText}>
-                  +15s
-                </Text>
-              </TouchableOpacity>
-            </View>
-            
-            {/* 测试按钮 */}
-            <TouchableOpacity 
-              style={styles.testButton}
-              onPress={playTestAudio}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="musical-notes" size={24} color="#FFD700" />
-              <Text style={styles.testButtonText}>播放测试音频</Text>
-            </TouchableOpacity>
-          </>
         )}
+
+        {!!error && <Text style={styles.errorText}>{error}</Text>}
+        
+        {/* 包装播放控制部分 */}
+        <View style={styles.playerControls}>
+          <View style={styles.timeRow}>
+            <Text style={styles.timeText}>{formatTime(effectivePos)}</Text>
+            <Text style={styles.timeText}>{formatTime(duration)}</Text>
+          </View>
+
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={safeDuration}
+            value={effectivePos}
+            onSlidingStart={() => {
+              setSeeking(true);
+              setSeekingValue(position);
+            }}
+            onValueChange={(v) => setSeekingValue(v)}
+            onSlidingComplete={(v) => {
+              setSeeking(false);
+              setSeekingValue(null);
+              seekTo(v);
+            }}
+            minimumTrackTintColor="#FFD700"
+            maximumTrackTintColor="rgba(255,255,255,0.3)"
+            thumbTintColor="#FFD700"
+          />
+
+          <View style={styles.controls}>
+            <TouchableOpacity style={styles.ctrlBtn} onPress={() => skipBackward(15000)}>
+              <Ionicons name="play-back" size={32} color="#fff" />
+              <Text style={styles.ctrlText}>15s</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.playBtn} onPress={onPlayPause}>
+              <Ionicons name={isPlaying ? 'pause' : 'play'} size={36} color="#000" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.ctrlBtn} onPress={() => skipForward(15000)}>
+              <Ionicons name="play-forward" size={32} color="#fff" />
+              <Text style={styles.ctrlText}>15s</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.loadBtn} onPress={playSample}>
+            <Text style={styles.loadText}>播放测试文件 sample.mp3</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -191,144 +148,108 @@ export default function PlayerView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#401b6c',
-    padding: 20,
+    backgroundColor: '#121212',
+    alignItems: 'center',
+    paddingTop: 48,
   },
-  backButton: {
-    position: 'absolute',
-    top: 60,
-    left: 20,
-    zIndex: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
-    padding: 8,
+  header: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  backBtn: {
+    padding: 4,
+  },
+  title: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    maxWidth: '70%',
+    textAlign: 'center',
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
+    width: '100%',
     alignItems: 'center',
-    paddingTop: 80,
+    paddingTop: 12,
   },
-  loadingContainer: {
+  logoContainer: {
+    marginTop: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 40,
+  },
+  playerControls: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 'auto',
+    marginBottom: 50,
+  },
+  loadingBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    top: '40%',
   },
   loadingText: {
-    color: '#FFD700',
-    fontSize: 18,
-    marginTop: 20,
-  },
-  errorContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    color: '#fff',
+    marginTop: 8,
   },
   errorText: {
     color: '#ff6b6b',
-    fontSize: 18,
-    marginTop: 20,
-    textAlign: 'center',
-    paddingHorizontal: 20,
+    marginVertical: 8,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#D9B3FF',
-    marginBottom: 10,
-  },
-  artistText: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.7)',
-    marginBottom: 30,
-  },
-  progressBar: {
-    height: 6,
+  timeRow: {
     width: '90%',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 3,
-    marginBottom: 10,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#FFD700',
-  },
-  timeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '90%',
-    marginBottom: 30,
+    marginTop: 0,
+    marginBottom: 4,
   },
   timeText: {
-    color: 'white',
-    fontSize: 14,
-    opacity: 0.8,
+    color: '#bbb',
+    fontVariant: ['tabular-nums'],
+  },
+  slider: {
+    width: '90%',
+    height: 40,
+    marginBottom: 20,
   },
   controls: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
-    width: '100%',
-    marginTop: 30,
+    justifyContent: 'space-between',
+    width: '70%',
+    marginBottom: 20,
   },
-  controlButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 80,
-  },
-  playButton: {
-    backgroundColor: 'white',
-    borderRadius: 50,
-    width: 80,
-    height: 80,
+  ctrlBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
   },
-  controlText: {
-    color: 'white',
-    marginTop: 5,
-    fontSize: 12,
+  ctrlText: {
+    color: '#fff',
+    marginTop: 4,
   },
-  // 测试按钮样式
-  testButton: {
-    flexDirection: 'row',
+  playBtn: {
+    backgroundColor: '#FFD700',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
-    backgroundColor: 'rgba(106, 53, 156, 0.7)',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-    marginTop: 40,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.3)',
+    justifyContent: 'center',
   },
-  testButtonText: {
-    color: '#FFD700',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 10,
-  },
-  // 重试按钮样式
-  retryButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  loadBtn: {
+    marginTop: 24,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    marginTop: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.3)',
+    borderRadius: 8,
+    backgroundColor: '#1e1e1e',
   },
-  retryText: {
-    color: '#FFD700',
-    fontSize: 16,
+  loadText: {
+    color: '#fff',
     fontWeight: '600',
-  }
+  },
 });
