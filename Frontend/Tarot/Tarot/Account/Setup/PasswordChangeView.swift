@@ -1,6 +1,7 @@
 // PasswordChangeView.swift
 import SwiftUI
 import Security
+import UIKit
 
 /// 简单 Keychain 封装：存取“上一次密码”哈希
 enum KeychainHelper {

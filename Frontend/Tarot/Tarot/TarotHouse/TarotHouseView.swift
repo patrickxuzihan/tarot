@@ -22,79 +22,15 @@ struct StarFieldBackground: View {
     }
 }
 
-// MARK: - 会员功能枚举
-enum MembershipFeature: CaseIterable {
-    case weeklyHoroscope
-    case dailyHoroscope
-    case quickDivination
-    case dailyTopics
-    case personalizedDivination
-
-    var id: Int {
-        switch self {
-        case .weeklyHoroscope: return 0
-        case .dailyHoroscope: return 1
-        case .quickDivination: return 2
-        case .dailyTopics: return 3
-        case .personalizedDivination: return 4
-        }
-    }
-
-    var title: String {
-        switch self {
-        case .weeklyHoroscope: return "星座周报"
-        case .dailyHoroscope: return "星座日报"
-        case .quickDivination: return "快速占卜"
-        case .dailyTopics: return "每日话题"
-        case .personalizedDivination: return "个性化占卜"
-        }
-    }
-
-    /// 基础版显示：有次数的用数字，没有的用 ✓/✗
-    var basicDescription: String {
-        switch self {
-        case .quickDivination:         return "35次"
-        case .dailyTopics:             return "12次"
-        case .personalizedDivination:  return "8次"
-        default:                       return basicIncluded ? "✓" : "✗"
-        }
-    }
-
-    /// 高级版显示：有次数的用数字，没有的用 ✓/✗
-    var premiumDescription: String {
-        switch self {
-        case .quickDivination:         return "80次"
-        case .dailyTopics:             return "30次"
-        case .personalizedDivination:  return "18次"
-        default:                       return premiumIncluded ? "✓" : "✗"
-        }
-    }
-
-    /// 基础版是否包含
-    var basicIncluded: Bool {
-        switch self {
-        case .weeklyHoroscope: return true
-        case .dailyHoroscope:  return false
-        case .quickDivination: return true
-        case .dailyTopics:     return true
-        case .personalizedDivination: return true
-        }
-    }
-
-    /// 高级版是否包含（这里假设全部都包含）
-    var premiumIncluded: Bool { true }
-}
-
 // MARK: - 主视图
 struct TarotHouseView: View {
-
     // —— 星月神话奖池预览用图片名称列表 —— //
     private let featuredCardImages = [
         "Timage6", "Timage7", "Timage8", "Timage9", "Timage10"
     ]
 
     // —— 状态变量 —— //
-    @State private var selectedTab = 0    // 0: 会员, 1: 奖池, 2: 背包, 3: 充值
+    @State private var selectedTab = 0    // 0: 奖池, 1: 背包, 2: 充值
     @State private var showGachaAnimation = false
     @State private var gachaResult: GachaResult?
     @State private var userCurrency = 1280
@@ -123,10 +59,9 @@ struct TarotHouseView: View {
                     tabSelector
 
                     TabView(selection: $selectedTab) {
-                        membershipSection.tag(0)
-                        gachaPoolsSection.tag(1)
-                        backpackSection.tag(2)
-                        rechargeSection.tag(3)
+                        gachaPoolsSection.tag(0)
+                        backpackSection.tag(1)
+                        rechargeSection.tag(2)
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                 }
@@ -190,313 +125,12 @@ struct TarotHouseView: View {
     // MARK: - 标签选择器
     private var tabSelector: some View {
         HStack(spacing: 0) {
-            TabButton(title: "会员",    isSelected: selectedTab == 0) { selectedTab = 0 }
-            TabButton(title: "奖池",    isSelected: selectedTab == 1) { selectedTab = 1 }
-            TabButton(title: "背包",    isSelected: selectedTab == 2) { selectedTab = 2 }
-            TabButton(title: "充值",    isSelected: selectedTab == 3) { selectedTab = 3 }
+            TabButton(title: "奖池", isSelected: selectedTab == 0) { selectedTab = 0 }
+            TabButton(title: "背包", isSelected: selectedTab == 1) { selectedTab = 1 }
+            TabButton(title: "充值", isSelected: selectedTab == 2) { selectedTab = 2 }
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 15)
-    }
-
-    // MARK: - 会员区域
-    private var membershipSection: some View {
-        ScrollView {
-            VStack(spacing: 30) {
-                Text("塔罗会员")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding(.top, 20)
-
-                Text("解锁更多神秘力量")
-                    .font(.title3)
-                    .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
-                    .padding(.bottom, 20)
-
-                membershipComparisonSection
-
-                HStack(spacing: 20) {
-                    basicMembershipCard
-                    premiumMembershipCard
-                }
-                .padding(.horizontal, 20)
-
-                faqSection
-                    .padding(.horizontal, 20)
-                    .padding(.top, 30)
-            }
-            .padding(.bottom, 50)
-        }
-    }
-
-    // MARK: - 会员套餐对比表
-    private var membershipComparisonSection: some View {
-        VStack(spacing: 0) {
-            // 表头
-            HStack {
-                Text("会员权益")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
-                Text("基础版")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(width: 120)
-                
-                Text("高级版")
-                    .font(.headline)
-                    .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
-                    .frame(width: 120)
-            }
-            .padding(15)
-            .background(Color(red: 0.2, green: 0.1, blue: 0.35))
-            
-            // 对比行
-            ForEach(MembershipFeature.allCases, id: \.self) { feature in
-                HStack {
-                    Text(feature.title)
-                        .font(.subheadline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    // 基础版：显示次数或“✓/✗”
-                    Text(feature.basicDescription)
-                        .font(.subheadline)
-                        .foregroundColor(.white)
-                        .frame(width: 120)
-                    
-                    // 高级版：显示次数或“✓/✗”
-                    Text(feature.premiumDescription)
-                        .font(.subheadline)
-                        .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
-                        .frame(width: 120)
-                }
-                .padding(15)
-                .background(
-                    Color(red: 0.15, green: 0.07, blue: 0.3)
-                        .opacity(feature.id % 2 == 0 ? 1.0 : 0.8)
-                )
-            }
-            
-            // 价格行
-            HStack {
-                Text("价格")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
-                Text("¥14.99/月")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(width: 120)
-                
-                Text("¥24.99/月")
-                    .font(.headline)
-                    .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
-                    .frame(width: 120)
-            }
-            .padding(15)
-            .background(Color(red: 0.2, green: 0.1, blue: 0.35))
-        }
-        .cornerRadius(15)
-        .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(Color(red: 0.5, green: 0.2, blue: 0.7), lineWidth: 1)
-        )
-        .padding(.horizontal, 20)
-    }
-    
-    // MARK: - 基础会员卡片
-    private var basicMembershipCard: some View {
-        VStack(spacing: 15) {
-            VStack {
-                Text("基础版")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                Text("¥14.99/月")
-                    .font(.title3)
-                    .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
-            }
-            .padding(.top, 20)
-
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(
-                    MembershipFeature.allCases.filter { $0.basicIncluded },
-                    id: \.self
-                ) { feature in
-                    HStack(spacing: 10) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text(feature.title)
-                            .font(.subheadline)
-                            .foregroundColor(.white)
-                    }
-                }
-            }
-            .padding(.horizontal, 15)
-
-            Spacer()
-
-            Button(action: {
-                // 开通基础会员逻辑
-            }) {
-                Text("立即开通")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 15)
-                    .background(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color(red: 0.4, green: 0.1, blue: 0.6))
-                    )
-            }
-            .padding(.bottom, 20)
-            .padding(.horizontal, 20)
-        }
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(red: 0.15, green: 0.07, blue: 0.3))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color(red: 0.5, green: 0.2, blue: 0.7), lineWidth: 2)
-        )
-    }
-
-    // MARK: - 高级会员卡片
-    private var premiumMembershipCard: some View {
-        VStack(spacing: 15) {
-            VStack {
-                Text("高级版")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
-                Text("¥24.99/月")
-                    .font(.title3)
-                    .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.5))
-            }
-            .padding(.top, 20)
-
-            Text("最受欢迎")
-                .font(.caption)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule()
-                        .fill(Color(red: 0.9, green: 0.5, blue: 0.3))
-                )
-
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(MembershipFeature.allCases, id: \.self) { feature in
-                    HStack(spacing: 10) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text(feature.title)
-                            .font(.subheadline)
-                            .foregroundColor(.white)
-                    }
-                }
-            }
-            .padding(.horizontal, 15)
-
-            Spacer()
-
-            Button(action: {
-                // 开通高级会员逻辑
-            }) {
-                Text("立即开通")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 15)
-                    .background(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color(red: 1.0, green: 0.8, blue: 0.3))
-                    )
-            }
-            .padding(.bottom, 20)
-            .padding(.horizontal, 20)
-        }
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(red: 0.15, green: 0.07, blue: 0.3))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color(red: 1.0, green: 0.8, blue: 0.3), lineWidth: 2)
-        )
-        .shadow(color: Color(red: 1.0, green: 0.8, blue: 0.3).opacity(0.5),
-                radius: 10, x: 0, y: 5)
-    }
-
-    // MARK: - 常见问题
-    private var faqSection: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("常见问题")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .padding(.bottom, 10)
-
-            VStack(spacing: 15) {
-                faqItem(
-                    question: "会员可以随时取消吗？",
-                    answer: "是的，您可以随时在账号设置中取消会员订阅，取消后将在当前计费周期结束后失效。"
-                )
-                faqItem(
-                    question: "会员费用如何支付？",
-                    answer: "我们支持多种支付方式，包括Apple Pay、支付宝、微信支付和信用卡支付。"
-                )
-                faqItem(
-                    question: "会员特权如何生效？",
-                    answer: "会员特权将在支付成功后立即生效，您可以在会员中心查看您的会员状态和剩余次数。"
-                )
-                faqItem(
-                    question: "会员可以升级或降级吗？",
-                    answer: "是的，您可以随时在账号设置中升级或降级您的会员套餐，变更将在下一个计费周期生效。"
-                )
-            }
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(red: 0.15, green: 0.07, blue: 0.3))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color(red: 0.5, green: 0.2, blue: 0.7), lineWidth: 1)
-        )
-    }
-
-    private func faqItem(question: String, answer: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(question)
-                    .font(.headline)
-                    .foregroundColor(.white)
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
-            }
-            Text(answer)
-                .font(.subheadline)
-                .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(15)
-        .background(
-            RoundedRectangle(cornerRadius: 15)
-                .fill(Color(red: 0.2, green: 0.1, blue: 0.35))
-        )
     }
 
     // MARK: - 奖池区域
@@ -1066,7 +700,6 @@ struct GachaAnimationView: View {
 }
 
 // MARK: - 数据模型
-
 struct GachaPool: Identifiable {
     let id = UUID()
     let name: String
