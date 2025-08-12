@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -18,7 +18,7 @@ const zodiacSigns = [
   { id: 7, name: '天秤', icon: 'scale', color: '#D9B3FF' },
   { id: 8, name: '天蝎', icon: 'bug', color: '#FFD166' },
   { id: 9, name: '射手', icon: 'arrow-up', color: '#06D6A0' },
-  { id: 10, name: '摩羯', icon: 'mountain', color: '#118AB2' },
+  { id: 10, name: '摩羯', icon: 'triangle-outline', color: '#118AB2' },
   { id: 11, name: '水瓶', icon: 'snow', color: '#EF476F' },
   { id: 12, name: '双鱼', icon: 'fish', color: '#073B4C' },
 ];
@@ -32,6 +32,15 @@ const tarotKnowledge = [
 
 export default function TarotEnergyScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
+
+  // 接收HomeScreen的“查看全部”跳转进入DailyTopics
+  useEffect(() => {
+    if (route?.params?.openDailyTopics) {
+      navigation.navigate('DailyTopics');
+      navigation.setParams({ openDailyTopics: undefined });
+    }
+  }, [route?.params?.openDailyTopics]);
   
   // 创建卡片发光动画效果
   const glowAnimations = {
