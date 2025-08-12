@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useEffect } from 'react';
 import {
   View,
   Text,
@@ -109,9 +110,18 @@ const samplePosts = [
 
 export default function ForumScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
   const [searchText, setSearchText] = useState('');
   const [selectedTag, setSelectedTag] = useState('全部');
   const [showNewPost, setShowNewPost] = useState(false);
+
+  // 从主页Header中的通知按钮进入Forum页面的NotificationsView
+  useEffect(() => {
+    if (route?.params?.openNotifications) {
+      navigation.navigate('Notifications');
+      navigation.setParams({ openNotifications: undefined });
+    }
+  }, [route?.params?.openNotifications]);
   
   // 可拖动按钮的位置状态
   const buttonPosition = useRef(
