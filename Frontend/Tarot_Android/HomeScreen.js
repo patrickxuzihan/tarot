@@ -195,10 +195,10 @@ export default function HomeScreen({ navigation }) {
         
         {/* 右侧按钮区域 */}
         <View style={styles.iconRow}>
-          <TouchableOpacity style={styles.circleButton} onPress={() => navigation.navigate('Notifications')}>
+          <TouchableOpacity style={styles.circleButton}   onPress={() =>navigation.getParent()?.navigate('论坛', {screen: 'Forum',  params: { openNotifications: true }})}>
             <Ionicons name="notifications-outline" size={24} color="white" style={styles.icon} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.circleButton} onPress={() => navigation.navigate('我')}>
+          <TouchableOpacity style={styles.circleButton} onPress={() =>navigation.getParent()?.navigate('我', {screen: 'Account',  params: { openSettings: true }})}>
             <Ionicons name="settings-outline" size={24} color="white" style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.circleButton} onPress={() => navigation.navigate('Player')}>
@@ -275,9 +275,14 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.sectionHeader}>
           <Ionicons name="calendar" size={24} color="#FFD700" style={{ marginRight: 8 }} />
           <Text style={styles.sectionHeaderText}>每日塔罗话题</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={{ marginLeft: 'auto' }}
-            onPress={() => navigation.navigate('DailyTopics')}>
+            onPress={() =>
+              navigation.getParent()?.navigate('塔罗宮能', {
+                screen: 'TarotEnergyMain',
+                params: { openDailyTopics: true }
+              })
+            }>
             <Text style={styles.viewAllText}>查看全部</Text>
           </TouchableOpacity>
         </View>

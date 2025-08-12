@@ -1,8 +1,11 @@
+// App.js — 接入 ThemesHelper 的动态主题
 import React, { useState } from 'react';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'react-native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { enableScreens } from 'react-native-screens';
+import { AudioProvider } from './Player/AudioContext';
+import { ThemeProvider, useAppTheme } from './Account/Setup/ThemesHelper';
 
 enableScreens();
 
@@ -14,24 +17,31 @@ import HomeView from './HomeView';
 
 const Stack = createNativeStackNavigator();
 
-const MyTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: '#2a1144', // 设置导航器背景为紫色
-  },
-};
+function NavWrapper() {
+  const { theme, colors } = useAppTheme();
 
-export default function App() {
+  const navTheme = {
+    ...(theme.dark ? DarkTheme : DefaultTheme),
+    dark: theme.dark,
+    colors: {
+      ...(theme.dark ? DarkTheme.colors : DefaultTheme.colors),
+      background: colors.bg,
+      card: colors.surfaceCard,
+      text: colors.text,
+      border: colors.border,
+      notification: colors.accent,
+      primary: colors.accent,
+    },
+  };
+
+  const barStyle = theme.dark ? 'light-content' : 'dark-content';
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [tempPhoneNumber, setTempPhoneNumber] = useState('');
 
   return (
-    <NavigationContainer
-      detachInactiveScreens={false}
-      theme={MyTheme}
-    >
-      <StatusBar barStyle="light-content" />
+    <NavigationContainer detachInactiveScreens={false} theme={navTheme}>
+      <StatusBar barStyle={barStyle} />
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
@@ -86,14 +96,24 @@ export default function App() {
           )}
         </Stack.Screen>
 
-        <Stack.Screen 
-          name="Home" 
-          component={HomeView} 
+        <Stack.Screen
+          name="Home"
+          component={HomeView}
           options={{
-            gestureEnabled: false, // 关键修复：禁用此屏幕的返回手势
+            gestureEnabled: false,
           }}
         />
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <AudioProvider>
+      <ThemeProvider>
+        <NavWrapper />
+      </ThemeProvider>
+    </AudioProvider>
   );
 }

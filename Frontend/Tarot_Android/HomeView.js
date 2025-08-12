@@ -12,6 +12,8 @@ import PostDetailView from './Forum/PostDetailView'
 import PlayerView from './Player/PlayerView';
 import PrivateDivinationView from './TarotEnergy/PrivateDivinationView';
 import DailyTopicsView from './TarotEnergy/DailyTopicsView';
+import SettingsView from './Account/SettingsView';
+import ThemeSettingsView from './Account/Setup/ThemesSettingsView';
 
 import HomeScreen from './HomeScreen';
 import ForumScreen from './Forum/ForumView';
@@ -31,7 +33,6 @@ function HomeStackScreen() {
     <HomeStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right'}}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeStack.Screen name="QuickDivination" component={QuickDivinationView} />
-      <HomeStack.Screen name="Notifications" component={NotificationsView} />
       <HomeStack.Screen name="Player" component={PlayerView} />
     </HomeStack.Navigator>
   );
@@ -71,6 +72,8 @@ function AccountStackScreen() {
   return (
     <AccountStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right'}}>
       <AccountStack.Screen name="Account" component={AccountScreen} />
+      <AccountStack.Screen name="Settings" component={SettingsView} />
+      <AccountStack.Screen name="ThemeSettings" component={ThemeSettingsView} />
     </AccountStack.Navigator>
   );
 }
