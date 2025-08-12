@@ -1,6 +1,4 @@
-// SettingsView.js — React Native 版本（含返回键 + “其他设置”分组）
-// 依赖：expo-linear-gradient、@expo/vector-icons、@react-navigation/native
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,9 +10,13 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from './Setup/ThemesHelper';
 
 export default function SettingsView() {
   const navigation = useNavigation();
+  const { colors, gradients, gradient } = useAppTheme();
+  const bgGradient = (gradients && gradients.panel) || gradient;
+  const styles = useMemo(() => getStyles(colors), [colors]);
 
   const accountItems = [
     { icon: 'person-circle-outline', title: '个人资料', to: 'ProfileEditor' },
@@ -32,17 +34,12 @@ export default function SettingsView() {
 
   const otherItems = [
     { icon: 'notifications-outline',   title: '通知设置', to: 'NotificationSettings' },
-    { icon: 'color-palette-outline',   title: '主题设置', to: 'ThemeSettings' },
+    { icon: 'color-palette-outline',   title: '主题设置', to: 'ThemesSettings' },
     { icon: 'globe-outline',           title: '语言设置', to: 'LanguageSettings' },
   ];
 
   return (
-    <LinearGradient
-      colors={['#1a0d33', '#241040', '#321857']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0.2, y: 1 }}
-      style={styles.root}
-    >
+    <LinearGradient colors={bgGradient} start={{ x: 0, y: 0 }} end={{ x: 0.2, y: 1 }} style={styles.root}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* 顶部：返回 + 标题 */}
         <View style={styles.header}>
@@ -52,24 +49,24 @@ export default function SettingsView() {
             style={styles.backBtn}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="chevron-back" size={20} color="#EBDDFF" />
+            <Ionicons name="chevron-back" size={20} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>设置</Text>
         </View>
 
         {/* 账号设置 */}
-        <Section title="账号设置">
-          <SettingGroup items={accountItems} />
+        <Section title="账号设置" styles={styles}>
+          <SettingGroup items={accountItems} styles={styles} />
         </Section>
 
         {/* 支持与帮助 */}
-        <Section title="支持与帮助">
-          <SettingGroup items={supportItems} />
+        <Section title="支持与帮助" styles={styles}>
+          <SettingGroup items={supportItems} styles={styles} />
         </Section>
 
         {/* 其他设置 */}
-        <Section title="其他设置">
-          <SettingGroup items={otherItems} />
+        <Section title="其他设置" styles={styles}>
+          <SettingGroup items={otherItems} styles={styles} />
         </Section>
 
         <View style={{ height: 30 }} />
@@ -79,7 +76,7 @@ export default function SettingsView() {
 }
 
 /* 分组容器（标题 + 卡片） */
-const Section = memo(function Section({ title, children }) {
+const Section = memo(function Section({ title, children, styles }) {
   return (
     <View style={{ marginBottom: 20 }}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -89,13 +86,14 @@ const Section = memo(function Section({ title, children }) {
 });
 
 /* 设置项列表（带分割线） */
-function SettingGroup({ items }) {
+function SettingGroup({ items, styles }) {
   const navigation = useNavigation();
   return (
     <View style={{ overflow: 'hidden', borderRadius: 15 }}>
       {items.map((it, idx) => (
         <View key={it.title}>
           <SettingRow
+            styles={styles}
             icon={it.icon}
             title={it.title}
             onPress={() => navigation.navigate(it.to)}
@@ -108,72 +106,74 @@ function SettingGroup({ items }) {
 }
 
 /* 单行设置项 */
-const SettingRow = memo(function SettingRow({ icon, title, onPress }) {
+const SettingRow = memo(function SettingRow({ icon, title, onPress, styles }) {
   return (
     <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.row}>
-      <Ionicons name={icon} size={20} color="#EBDDFF" style={{ width: 30 }} />
+      <Ionicons name={icon} size={20} color={styles.__c.subtext} style={{ width: 30 }} />
       <Text style={styles.rowText}>{title}</Text>
-      <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.55)" />
+      <Ionicons name="chevron-forward" size={18} color={styles.__c.textMuted} />
     </TouchableOpacity>
   );
 });
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  scroll: {
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 20 : 16,
-  },
+const getStyles = (c) =>
+  StyleSheet.create({
+    __c: c, // 供子组件读取主题色
+    root: { flex: 1 },
+    scroll: {
+      paddingHorizontal: 20,
+      paddingTop: Platform.OS === 'ios' ? 20 : 16,
+    },
 
-  header: {
-    marginBottom: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  headerTitle: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '700',
-  },
+    header: {
+      marginBottom: 14,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: c.surfaceGlass,
+      borderWidth: 1,
+      borderColor: c.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 8,
+    },
+    headerTitle: {
+      color: c.text,
+      fontSize: 20,
+      fontWeight: '700',
+    },
 
-  sectionTitle: {
-    color: '#D9C8FF',
-    fontSize: 16,
-    fontWeight: '700',
-    paddingLeft: 10,
-    marginBottom: 10,
-  },
+    sectionTitle: {
+      color: c.subtext,
+      fontSize: 16,
+      fontWeight: '700',
+      paddingLeft: 10,
+      marginBottom: 10,
+    },
 
-  groupCard: {
-    backgroundColor: 'rgba(38, 26, 61, 0.8)',
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: 'rgba(130, 90, 180, 0.8)',
-  },
+    groupCard: {
+      backgroundColor: c.surfaceCard,
+      borderRadius: 15,
+      borderWidth: 1,
+      borderColor: c.surfaceCardBorder,
+    },
 
-  row: {
-    paddingHorizontal: 15,
-    paddingVertical: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(32, 20, 56, 0.7)',
-  },
-  rowText: { color: '#FFFFFF', fontSize: 16, flex: 1 },
+    row: {
+      paddingHorizontal: 15,
+      paddingVertical: 15,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.surface,
+    },
+    rowText: { color: c.text, fontSize: 16, flex: 1 },
 
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: '#4d337f',
-    marginLeft: 45,
-  },
-});
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: c.surfaceLine,
+      marginLeft: 45,
+    },
+  });
