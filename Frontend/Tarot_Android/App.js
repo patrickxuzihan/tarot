@@ -1,4 +1,3 @@
-// App.js — 接入 ThemesHelper 的动态主题
 import React, { useState } from 'react';
 import { StatusBar } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
