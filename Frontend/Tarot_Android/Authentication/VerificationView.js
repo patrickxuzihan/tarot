@@ -1,12 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   Keyboard, KeyboardAvoidingView, Platform, StyleSheet
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '../Account/Setup/ThemesHelper';
 
 export default function VerificationView({ navigation, phoneNumber, onSuccess }) {
+  const { colors, gradients, gradient } = useAppTheme();
+  const bgGradient = (gradients && gradients.auth) || gradient;
+  const styles = useMemo(() => getStyles(colors), [colors]);
+
   const [verificationCode, setVerificationCode] = useState('');
   const [countdown, setCountdown] = useState(60);
   const [isCountingDown, setIsCountingDown] = useState(true);
@@ -61,50 +66,54 @@ export default function VerificationView({ navigation, phoneNumber, onSuccess })
   };
 
   return (
-    <LinearGradient colors={['#260D40', '#401966']} style={{ flex: 1 }}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+    <LinearGradient colors={bgGradient} style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.wrapper}
       >
-        <ScrollView 
-          contentContainerStyle={styles.container} 
+        <ScrollView
+          contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
             style={styles.backButton}
+            activeOpacity={0.85}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Ionicons name="chevron-back" size={20} color={colors.text} />
             <Text style={styles.backText}>返回登录</Text>
           </TouchableOpacity>
 
           <View style={styles.header}>
-            <Ionicons name="mail" size={62} color="#fff" />
+            <Ionicons name="mail" size={62} color={colors.text} />
             <Text style={styles.headerTitle}>短信验证码</Text>
             <Text style={styles.headerSub}>验证码已发送至</Text>
-            <Text style={styles.phoneBox}>{phoneNumber}</Text>
+            <Text style={[styles.phoneBox, { borderColor: colors.border }]}>{phoneNumber}</Text>
           </View>
-          
-          {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
+
+          {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
           <TextInput
             placeholder="请输入6位验证码"
             keyboardType="number-pad"
             value={verificationCode}
             onChangeText={text => setVerificationCode(text.replace(/[^0-9]/g, '').slice(0, 6))}
-            placeholderTextColor="#ccc"
+            placeholderTextColor={colors.inputPlaceholder}
             style={styles.input}
           />
 
-          <TouchableOpacity 
-            disabled={isCountingDown} 
-            onPress={handleResend} 
+          <TouchableOpacity
+            disabled={isCountingDown}
+            onPress={handleResend}
             style={styles.resend}
+            activeOpacity={0.85}
           >
-            <Text style={[
-              styles.resendText,
-              isCountingDown ? styles.resendDisabled : styles.resendActive
-            ]}>
+            <Text
+              style={[
+                styles.resendText,
+                { color: isCountingDown ? colors.textMuted : colors.subtext, fontWeight: isCountingDown ? 'normal' : '700' },
+              ]}
+            >
               {isCountingDown ? `重新获取验证码 (${countdown}s)` : '重新发送验证码'}
             </Text>
           </TouchableOpacity>
@@ -112,15 +121,21 @@ export default function VerificationView({ navigation, phoneNumber, onSuccess })
           <TouchableOpacity
             disabled={!isValidVerification}
             onPress={handleVerify}
-            style={[
-              styles.verifyButton, 
-              { backgroundColor: isValidVerification ? '#9933FF' : '#aaa' }
-            ]}
+            activeOpacity={0.9}
+            style={{ borderRadius: 20, overflow: 'hidden', marginBottom: 30, opacity: isValidVerification ? 1 : 0.85 }}
           >
-            <Text style={styles.verifyText}>验证并进入</Text>
+            {isValidVerification ? (
+              <LinearGradient colors={[colors.accent, colors.border]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.verifyButton}>
+                <Text style={[styles.verifyText, { color: colors.buttonPrimaryText }]}>验证并进入</Text>
+              </LinearGradient>
+            ) : (
+              <View style={[styles.verifyButton, { backgroundColor: colors.buttonPrimaryDisabledBg }]}>
+                <Text style={[styles.verifyText, { color: colors.buttonPrimaryText }]}>验证并进入</Text>
+              </View>
+            )}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handlePasswordLogin} style={styles.passwordLink}>
+          <TouchableOpacity onPress={handlePasswordLogin} style={styles.passwordLink} activeOpacity={0.85}>
             <Text style={styles.passwordText}>没收到验证码？尝试账号密码登录</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -129,104 +144,102 @@ export default function VerificationView({ navigation, phoneNumber, onSuccess })
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { 
-    flex: 1, 
+const getStyles = (c) => StyleSheet.create({
+  wrapper: {
+    flex: 1,
     paddingHorizontal: 30,
   },
-  container: { 
+  container: {
     flexGrow: 1,
-    paddingTop: 60, // 顶部增加更多空白
-    paddingBottom: 50, // 底部增加更多空白
+    paddingTop: 60,
+    paddingBottom: 50,
   },
   backButton: {
-    flexDirection: 'row', 
-    backgroundColor: 'rgba(128,64,192,0.3)',
-    padding: 12,
-    borderRadius: 10, 
+    flexDirection: 'row',
+    backgroundColor: c.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 40, // 增加与头部区域的间距
+    marginBottom: 40,
     alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: c.border,
   },
-  backText: { 
-    color: '#fff', 
+  backText: {
+    color: c.text,
     marginLeft: 8,
     fontWeight: 'bold',
-    fontSize: 18
+    fontSize: 16,
   },
-  header: { 
-    alignItems: 'center', 
-    marginBottom: 35 // 增加与输入框的间距
+  header: {
+    alignItems: 'center',
+    marginBottom: 35,
   },
-  headerTitle: { 
-    color: '#fff', 
+  headerTitle: {
+    color: c.text,
     fontSize: 28,
-    fontWeight: 'bold', 
-    marginTop: 20 // 增加图标与标题的间距
+    fontWeight: 'bold',
+    marginTop: 20,
   },
-  headerSub: { 
-    color: '#ccc', 
+  headerSub: {
+    color: c.subtext,
     fontSize: 18,
-    marginTop: 10
+    marginTop: 10,
   },
   phoneBox: {
-    color: '#fff', 
-    fontWeight: 'bold', 
-    backgroundColor: 'rgba(128,64,192,0.3)',
+    color: c.text,
+    fontWeight: 'bold',
+    backgroundColor: c.surface,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
-    marginTop: 15, // 增加副标题与电话号码的间距
-    fontSize: 20
+    marginTop: 15,
+    fontSize: 18,
+    borderWidth: 1,
   },
   input: {
-    backgroundColor: 'rgba(128,64,192,0.3)', 
+    backgroundColor: c.inputBg,
     borderRadius: 20,
     padding: 18,
-    color: '#fff', 
+    color: c.text,
     fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center', 
-    marginBottom: 25 // 增加与重新发送按钮的间距
+    textAlign: 'center',
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
   },
-  resend: { 
-    alignItems: 'center', 
-    marginBottom: 30 // 增加与验证按钮的间距
+  resend: {
+    alignItems: 'center',
+    marginBottom: 30,
   },
   resendText: {
-    fontSize: 18
+    fontSize: 18,
   },
-  resendDisabled: {
-    color: '#aaa'
-  },
-  resendActive: {
-    color: '#D9B3FF', 
-    fontWeight: 'bold'
-  },
-  verifyButton: { 
+  verifyButton: {
     padding: 20,
     borderRadius: 20,
     alignItems: 'center',
-    marginBottom: 30 // 增加与底部链接的间距
+    marginBottom: 0,
   },
-  verifyText: { 
-    color: '#fff', 
+  verifyText: {
     fontSize: 20,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   passwordLink: {
     alignSelf: 'center',
   },
-  passwordText: { 
-    color: '#D9B3FF', 
-    textDecorationLine: 'underline', 
-    fontSize: 16
-  },
-  error: { 
-    color: '#ff6b6b',
+  passwordText: {
+    color: c.subtext,
+    textDecorationLine: 'underline',
     fontSize: 16,
-    marginBottom: 20, // 增加错误信息下方的间距
+  },
+  error: {
+    color: c.stateError,
+    fontSize: 16,
+    marginBottom: 20,
     fontWeight: 'bold',
-    textAlign: 'center'
-  }
+    textAlign: 'center',
+  },
 });
