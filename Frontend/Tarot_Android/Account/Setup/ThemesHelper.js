@@ -1,4 +1,3 @@
-// ThemesHelper.js — 扩展主题令牌（支持更多页面的换肤）
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

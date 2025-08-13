@@ -1,5 +1,3 @@
-// ThemeSettingsView.js — 主题设置（对齐 SwiftUI 版本的结构与预览）
-// 依赖：expo-linear-gradient、@expo/vector-icons、@react-navigation/native、ThemesHelper
 import React, { memo } from 'react';
 import {
   View,
@@ -19,7 +17,7 @@ const OPTIONS = [
   { key: 'silverNoir',   label: '银黑'   },
 ];
 
-export default function ThemeSettingsView() {
+export default function ThemesSettingsView() {
   const navigation = useNavigation();
   const { key, colors, gradient, setTheme, toggle, theme } = useAppTheme();
 
