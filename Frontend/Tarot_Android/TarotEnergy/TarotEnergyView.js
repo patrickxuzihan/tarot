@@ -7,7 +7,7 @@ import { useAppTheme } from '../Account/Setup/ThemesHelper';
 
 const screenWidth = Dimensions.get('window').width;
 
-// 星座数据（图标保留；颜色用于小圆标点缀）
+// 星座数据
 const zodiacSigns = [
   { id: 1, name: '白羊', icon: 'moon', color: '#FF6B6B' },
   { id: 2, name: '金牛', icon: 'leaf', color: '#4ECDC4' },
@@ -28,6 +28,14 @@ const tarotKnowledge = [
   { id: 1, title: '塔罗起源', content: '塔罗牌起源于15世纪的意大利，最初作为纸牌游戏使用，后来发展为占卜工具。', icon: 'hourglass' },
   { id: 2, title: '大阿卡纳', content: '22张大阿卡纳牌代表人生的重要课题和精神旅程，每张牌都有深刻的象征意义。', icon: 'star' },
   { id: 3, title: '牌阵意义', content: '不同的牌阵揭示不同层面的信息，三牌阵适合快速占卜，凯尔特十字适合深度分析。', icon: 'grid' },
+];
+
+// 进阶功能目标页
+const advancedTargets = [
+  { title: '牌阵库', description: '经典牌阵集合', icon: 'diamond', route: 'CardLibrary' },
+  { title: '阅读历史', description: '回顾往期占卜', icon: 'book', route: 'ReadingHistory' },
+  { title: '数据洞察', description: '统计与分析', icon: 'stats-chart', route: 'StatsInsights' },
+  { title: '能量笔记', description: '记录你的体悟', icon: 'document-text', route: 'EnergyNotes' },
 ];
 
 export default function TarotEnergyScreen() {
@@ -96,9 +104,21 @@ export default function TarotEnergyScreen() {
     </View>
   );
 
-  // 渲染星座卡片
+  // 星座卡片：携参跳转 HoroscopeView
   const renderZodiacCard = (sign) => (
-    <TouchableOpacity key={sign.id} style={styles.zodiacCard} onPress={() => navigation.navigate('HoroscopeView')}>
+    <TouchableOpacity
+      key={sign.id}
+      style={styles.zodiacCard}
+      onPress={() =>
+        navigation.navigate('Horoscope', {
+          signId: sign.id,
+          signName: sign.name,
+          icon: sign.icon,
+          color: sign.color,
+          score: Math.floor(Math.random() * 46) + 55,
+        })
+      }
+    >
       <View style={[styles.zodiacIcon, { backgroundColor: sign.color }]}>
         <Ionicons name={sign.icon} size={28} color={colors.textInverse} />
       </View>
@@ -109,9 +129,20 @@ export default function TarotEnergyScreen() {
     </TouchableOpacity>
   );
 
-  // 渲染塔罗知识卡片
+  // 知识卡片：携参跳转 TarotKnowledgeView
   const renderTarotKnowledgeCard = (item) => (
-    <TouchableOpacity key={item.id} style={styles.knowledgeCard} onPress={() => navigation.navigate('TarotKnowledgeView')}>
+    <TouchableOpacity
+      key={item.id}
+      style={styles.knowledgeCard}
+      onPress={() =>
+        navigation.navigate('TarotKnowledge', {
+          id: item.id,
+          title: item.title,
+          content: item.content,
+          icon: item.icon,
+        })
+      }
+    >
       <View style={styles.knowledgeIcon}>
         <Ionicons name={item.icon} size={32} color={colors.text} />
       </View>
@@ -122,39 +153,56 @@ export default function TarotEnergyScreen() {
     </TouchableOpacity>
   );
 
-  // 渲染进阶功能卡片
-  const renderAdvancedFunctionCard = (title, description, icon, color) => (
-    <TouchableOpacity style={styles.advancedCard} onPress={() => navigation.navigate('AdvancedFunctionView')}>
+  // 进阶功能：分别导向不同页面
+  const renderAdvancedFunctionCard = (title, description, icon, color, routeName) => (
+    <TouchableOpacity style={styles.advancedCard} onPress={() => navigation.navigate(routeName)}>
       <View style={styles.advancedCardContent}>
         <View style={[styles.advancedIcon, { backgroundColor: color }]}>
           <Ionicons name={icon} size={24} color={colors.textInverse} />
         </View>
         <View style={styles.advancedText}>
           <Text style={styles.advancedTitle}>{title}</Text>
-          <Text style={styles.advancedDescription}>{description}</Text>
+        <Text style={styles.advancedDescription}>{description}</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
       </View>
     </TouchableOpacity>
   );
 
-  // 渲染教学卡片
+  // 教学卡片：携参跳转 TarotLessonView
   const renderLessonCard = (index) => {
     const fills = [colors.accent, colors.accentViolet, colors.brandPrimary];
+    const lesson = {
+      id: index,
+      title: `第 ${index} 课：塔罗基础入门`,
+      description: '学习正逆位含义与象征',
+      duration: 25,
+    };
     return (
-      <View key={index} style={[styles.lessonCard, { backgroundColor: fills[index % fills.length] }]}>
+      <TouchableOpacity
+        key={`lesson-card-${index}`}
+        style={[styles.lessonCard, { backgroundColor: fills[index % fills.length] }]}
+        onPress={() =>
+          navigation.navigate('TarotTutorial', {
+            lessonId: lesson.id,
+            title: lesson.title,
+            description: lesson.description,
+            duration: lesson.duration,
+          })
+        }
+      >
         <View style={styles.lessonContent}>
-          <Text style={styles.lessonTitle}>第 {index} 课：塔罗基础入门</Text>
-          <Text style={styles.lessonDescription}>学习正逆位含义与象征</Text>
+          <Text style={styles.lessonTitle}>{lesson.title}</Text>
+          <Text style={styles.lessonDescription}>{lesson.description}</Text>
           <View style={styles.lessonInfo}>
             <Ionicons name="time" size={16} color={colors.textInverse} />
-            <Text style={styles.lessonTime}>25分钟</Text>
+            <Text style={styles.lessonTime}>{lesson.duration}分钟</Text>
           </View>
         </View>
         <View style={styles.playButton}>
           <Ionicons name="play-circle" size={40} color={colors.textInverse} />
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -321,10 +369,17 @@ export default function TarotEnergyScreen() {
         <View style={styles.sectionContainer}>
           <SectionHeader title="进阶功能" subtitle="深度探索" />
           <View style={styles.advancedGrid}>
-            {renderAdvancedFunctionCard('牌阵库', '经典牌阵集合', 'diamond', colors.accentViolet)}
-            {renderAdvancedFunctionCard('阅读历史', '回顾往期占卜', 'book', colors.accent)}
-            {renderAdvancedFunctionCard('数据洞察', '统计与分析', 'stats-chart', colors.brandPrimary)}
-            {renderAdvancedFunctionCard('能量笔记', '记录你的体悟', 'document-text', colors.border)}
+            {advancedTargets.map((t, idx) => (
+              <React.Fragment key={`adv-${t.route}`}>
+                {renderAdvancedFunctionCard(
+                  t.title,
+                  t.description,
+                  t.icon,
+                  [colors.accentViolet, colors.accent, colors.brandPrimary, colors.border][idx],
+                  t.route
+                )}
+              </React.Fragment>
+            ))}
           </View>
         </View>
 
@@ -346,17 +401,33 @@ export default function TarotEnergyScreen() {
         <View style={styles.sectionContainer}>
           <SectionHeader title="塔罗教学" subtitle="精选课程" />
           <View style={styles.lessonsContainer}>
-            <View style={styles.lessonsCarousel}>{[1, 2, 3].map(renderLessonCard)}</View>
+            <View style={styles.lessonsCarousel}>
+              {[1, 2, 3].map((lessonId) => (
+                <React.Fragment key={`lesson-${lessonId}`}>{renderLessonCard(lessonId)}</React.Fragment>
+              ))}
+            </View>
             <View style={styles.smallLessons}>
-              <TouchableOpacity style={styles.smallLessonCard}>
+              <TouchableOpacity
+                key="small-lesson-major"
+                style={styles.smallLessonCard}
+                onPress={() => navigation.navigate('TarotTutorial', { category: 'major', title: '大阿卡纳', lessonId: 'major-001' })}
+              >
                 <Ionicons name="star" size={24} color={colors.accentGold} />
                 <Text style={styles.smallLessonTitle}>大阿卡纳</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.smallLessonCard}>
+              <TouchableOpacity
+                key="small-lesson-minor"
+                style={styles.smallLessonCard}
+                onPress={() => navigation.navigate('TarotTutorial', { category: 'minor', title: '小阿卡纳', lessonId: 'minor-001' })}
+              >
                 <Ionicons name="sparkles" size={24} color={colors.accentGold} />
                 <Text style={styles.smallLessonTitle}>小阿卡纳</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.smallLessonCard}>
+              <TouchableOpacity
+                key="small-lesson-spread"
+                style={styles.smallLessonCard}
+                onPress={() => navigation.navigate('TarotTutorial', { category: 'spreads', title: '牌阵指南', lessonId: 'spread-001' })}
+              >
                 <Ionicons name="grid" size={24} color={colors.accentGold} />
                 <Text style={styles.smallLessonTitle}>牌阵指南</Text>
               </TouchableOpacity>
@@ -395,7 +466,7 @@ const getStyles = (c) =>
     glowContainer: {
       marginBottom: 30,
       borderRadius: 25,
-      shadowColor: c.text, // 外发光颜色随主题
+      shadowColor: c.text,
       shadowOffset: { width: 0, height: 0 },
     },
     card: {
