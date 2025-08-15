@@ -1,14 +1,14 @@
 // 各种库
 import React from 'react';
-import { BackHandler, StyleSheet } from 'react-native';
+import { BackHandler, StyleSheet, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from './Account/Setup/ThemesHelper';
 
 // HomeScreen子页面
-import PlayerView from './Player/PlayerView';
 
 // ForumScreen子页面
 import NotificationsView from './Notifications/NotificationsView';
@@ -59,6 +59,9 @@ import TarotEnergyScreen from './TarotEnergy/TarotEnergyView';
 import TarotHouseScreen from './TarotHouse/TarotHouseView';
 import AccountScreen from './Account/AccountView';
 
+// MiniPlayer
+import MiniPlayer from './Player/MiniPlayer';
+
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
 const ForumStack = createNativeStackNavigator();
@@ -77,7 +80,6 @@ function HomeStackScreen() {
       }}
     >
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
-      <HomeStack.Screen name="Player" component={PlayerView} />
     </HomeStack.Navigator>
   );
 }
@@ -178,6 +180,8 @@ function AccountStackScreen() {
 
 export default function HomeView() {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const bottomOffset = (insets?.bottom || 0) + 78; // 70(tab) + 8间距
 
   useFocusEffect(
     React.useCallback(() => {
@@ -192,48 +196,52 @@ export default function HomeView() {
   );
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: colors.headerBg,
-          borderTopColor: colors.surfaceLine,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          height: 70,
-        },
-        tabBarLabelStyle: { fontSize: 14, marginBottom: 8 },
-        tabBarIconStyle: { marginTop: 8 },
-        tabBarActiveTintColor: colors.tabActive,
-        tabBarInactiveTintColor: colors.tabInactive,
-        sceneContainerStyle: { backgroundColor: colors.bg },
-      }}
-    >
-      <Tab.Screen
-        name="主页"
-        component={HomeStackScreen}
-        options={{ tabBarIcon: ({ color }) => <Ionicons name="home" size={26} color={color} /> }}
-      />
-      <Tab.Screen
-        name="论坛"
-        component={ForumStackScreen}
-        options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubbles" size={26} color={color} /> }}
-      />
-      <Tab.Screen
-        name="塔罗宮能"
-        component={TarotEnergyStackScreen}
-        options={{ tabBarIcon: ({ color }) => <Ionicons name="grid" size={26} color={color} /> }}
-      />
-      <Tab.Screen
-        name="塔罗屋"
-        component={TarotHouseStackScreen}
-        options={{ tabBarIcon: ({ color }) => <Ionicons name="archive" size={26} color={color} /> }}
-      />
-      <Tab.Screen
-        name="我"
-        component={AccountStackScreen}
-        options={{ tabBarIcon: ({ color }) => <Ionicons name="person" size={26} color={color} /> }}
-      />
-    </Tab.Navigator>
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: colors.headerBg,
+            borderTopColor: colors.surfaceLine,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            height: 70,
+          },
+          tabBarLabelStyle: { fontSize: 14, marginBottom: 8 },
+          tabBarIconStyle: { marginTop: 8 },
+          tabBarActiveTintColor: colors.tabActive,
+          tabBarInactiveTintColor: colors.tabInactive,
+          sceneContainerStyle: { backgroundColor: colors.bg, paddingBottom: bottomOffset },
+        }}
+      >
+        <Tab.Screen
+          name="主页"
+          component={HomeStackScreen}
+          options={{ tabBarIcon: ({ color }) => <Ionicons name="home" size={26} color={color} /> }}
+        />
+        <Tab.Screen
+          name="论坛"
+          component={ForumStackScreen}
+          options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubbles" size={26} color={color} /> }}
+        />
+        <Tab.Screen
+          name="塔罗宮能"
+          component={TarotEnergyStackScreen}
+          options={{ tabBarIcon: ({ color }) => <Ionicons name="grid" size={26} color={color} /> }}
+        />
+        <Tab.Screen
+          name="塔罗屋"
+          component={TarotHouseStackScreen}
+          options={{ tabBarIcon: ({ color }) => <Ionicons name="archive" size={26} color={color} /> }}
+        />
+        <Tab.Screen
+          name="我"
+          component={AccountStackScreen}
+          options={{ tabBarIcon: ({ color }) => <Ionicons name="person" size={26} color={color} /> }}
+        />
+      </Tab.Navigator>
+
+      <MiniPlayer />
+    </View>
   );
 }
 
@@ -249,3 +257,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+ 

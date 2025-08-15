@@ -89,7 +89,6 @@ export default function HomeScreen({ navigation }) {
 
   const rotateInterpolate = starRotation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
   const glowInterpolate = cardGlow.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
-  const musicRotateInterpolate = musicRotation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   const dailyTopics = [
     { id: 1, title: '塔罗话题 #1', desc: '探索塔罗牌的深层含义与智慧', time: '1天前' },
@@ -124,6 +123,7 @@ export default function HomeScreen({ navigation }) {
             </View>
           </View>
 
+          {/* 右侧只保留通知与设置；删除进入播放器的旧入口 */}
           <View style={styles.iconRow}>
             <TouchableOpacity
               style={styles.circleButton}
@@ -146,15 +146,6 @@ export default function HomeScreen({ navigation }) {
               }
             >
               <Ionicons name="settings-outline" size={24} color={colors.text} style={styles.icon} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.circleButton} onPress={() => navigation.navigate('Player')}>
-              <Animated.View
-                style={{
-                  transform: [{ scale: musicScale }, { rotate: musicRotateInterpolate }],
-                }}
-              >
-                <Ionicons name="musical-notes" size={24} color={colors.text} style={styles.icon} />
-              </Animated.View>
             </TouchableOpacity>
           </View>
         </View>
