@@ -312,7 +312,7 @@ const getStyles = (c) =>
 
     inputKeyboardView: {
       position: 'absolute',
-      bottom: 0,
+      bottom: 56,
       left: 0,
       right: 0,
       backgroundColor: c.bg,
