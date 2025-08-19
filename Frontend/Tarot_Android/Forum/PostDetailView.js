@@ -242,6 +242,10 @@ const getStyles = (c) =>
       backgroundColor: c.surface,
       borderTopWidth: 1,
       borderTopColor: c.surfaceLine,
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 56,
     },
     commentInput: {
       flex: 1,
