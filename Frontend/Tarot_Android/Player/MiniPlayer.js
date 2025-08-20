@@ -1,4 +1,4 @@
-// MiniPlayer.js
+// /mnt/data/MiniPlayer.js
 import React, { useMemo, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +22,7 @@ export default function MiniPlayer() {
 
   const progress = Math.min(1, Math.max(0, position / duration));
   const title = currentAudio?.title || '暂无播放内容';
+  const pageName = currentAudio?.pageName; // 可选的来源页面
 
   // === Animation: pulse when playing ===
   const pulse = useRef(new Animated.Value(0)).current;
@@ -29,7 +30,6 @@ export default function MiniPlayer() {
 
   useEffect(() => {
     if (isPlaying && currentAudio) {
-      // start pulse loop
       loopRef.current = Animated.loop(
         Animated.sequence([
           Animated.timing(pulse, { toValue: 1, duration: 700, easing: Easing.out(Easing.quad), useNativeDriver: true }),
@@ -38,7 +38,6 @@ export default function MiniPlayer() {
       );
       loopRef.current.start();
     } else {
-      // stop and reset
       if (loopRef.current?.stop) loopRef.current.stop();
       pulse.setValue(0);
     }
@@ -47,7 +46,6 @@ export default function MiniPlayer() {
     };
   }, [isPlaying, currentAudio, pulse]);
 
-  // interpolate for scale & opacity
   const pulseScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.2] });
   const pulseOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0, 0.6] });
 
@@ -75,7 +73,13 @@ export default function MiniPlayer() {
             <Ionicons name="musical-notes" size={22} color={colors.accentGold} />
           </View>
 
-          <Text numberOfLines={1} style={s.title}>{title}</Text>
+          {/* 标题 + 来源页面（可选） */}
+          <View style={s.textWrap}>
+            <Text numberOfLines={1} style={s.title}>{title}</Text>
+            {!!pageName && (
+              <Text numberOfLines={1} style={s.subtitle}>来自：{pageName}</Text>
+            )}
+          </View>
         </View>
 
         <TouchableOpacity
@@ -97,19 +101,21 @@ export default function MiniPlayer() {
 const styles = (c) => StyleSheet.create({
   wrap: {
     position: 'absolute',
-    left: 12,
-    right: 12,
-    bottom: 78, // 70(tab) + 8
+    left: 0,
+    right: 0,
+    bottom: 70, // 70(tab) + 8
   },
   card: {
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: c.headerBg,
-    borderWidth: 1,
-    borderColor: c.surfaceCardBorder,
+    height: 60,
+    backgroundColor: c.miniPlayerBg,
+    borderTopWidth: 1,
+    borderTopColor: c.surfaceCardBorder,
     paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    borderRadius: 16,
+    marginHorizontal: 6,
+    marginBottom: 4,
     overflow: 'hidden',
   },
   left: { flex: 1, flexDirection: 'row', alignItems: 'center' },
@@ -121,7 +127,9 @@ const styles = (c) => StyleSheet.create({
     borderRadius: 14,
     backgroundColor: c.accentGold,
   },
-  title: { marginLeft: 10, color: c.text, fontWeight: '700', maxWidth: '85%' },
+  textWrap: { marginLeft: 10, maxWidth: '78%' },
+  title: { color: c.text, fontWeight: '700' },
+  subtitle: { color: c.textMuted, fontSize: 12, marginTop: 2 },
   playBtn: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: c.accentGold, alignItems: 'center', justifyContent: 'center',

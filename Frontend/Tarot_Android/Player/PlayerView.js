@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+// /mnt/data/PlayerView.js
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +7,8 @@ import {
   StyleSheet,
   BackHandler,
   ActivityIndicator,
+  Animated,
+  Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -64,12 +67,13 @@ export default function PlayerView() {
     }
   };
 
+  // 播放测试文件
   const playSample = async () => {
     try {
       const asset = Asset.fromModule(require('./sample.mp3'));
       await asset.downloadAsync();
       const uri = asset.localUri || asset.uri;
-      await playNewAudio({ uri, title: '示例音乐 · sample.mp3' });
+      await playNewAudio({ uri, title: '示例音乐 · sample.mp3' }, 'PlayerView');
     } catch (e) {
       console.error('加载 sample.mp3 失败:', e);
     }
@@ -78,6 +82,37 @@ export default function PlayerView() {
   const effectivePos = seeking ? seekingValue : position;
   const safeDuration = Math.max(duration || 0, 1);
 
+  // ===== 圆形占位容器 + 播放时旋转 =====
+  const rotateVal = useRef(new Animated.Value(0)).current;
+  const rotateLoop = useRef(null);
+
+  useEffect(() => {
+    if (isPlaying) {
+      // 连续旋转（8秒一圈）
+      rotateLoop.current = Animated.loop(
+        Animated.timing(rotateVal, {
+          toValue: 1,
+          duration: 8000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      );
+      rotateLoop.current.start();
+    } else {
+      // 暂停旋转
+      if (rotateLoop.current?.stop) rotateLoop.current.stop();
+    }
+    return () => {
+      if (rotateLoop.current?.stop) rotateLoop.current.stop();
+    };
+  }, [isPlaying, rotateVal]);
+
+  // 将 0~1 映射为 0~360deg
+  const spin = rotateVal.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <LinearGradient colors={bgGradient} style={styles.root} start={{ x: 0, y: 0 }} end={{ x: 0.2, y: 1 }}>
       {/* 顶部栏 */}
@@ -85,17 +120,27 @@ export default function PlayerView() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.85}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title} numberOfLines={1}>
-          {currentAudio?.title || '正在播放'}
-        </Text>
         <View style={{ width: 24 }} />
       </View>
 
       {/* 内容 */}
       <View style={styles.content}>
-        {/* 音符Logo */}
-        <View style={styles.logoContainer}>
-          <Ionicons name="musical-notes" size={120} color={colors.accentGold} />
+        <Animated.View style={[styles.circleHolder, { transform: [{ rotate: spin }] }]}>
+          <View style={styles.circleInner}>
+            <Ionicons name="musical-notes" size={120} color={colors.accentGold} />
+          </View>
+        </Animated.View>
+
+        {/* 标题 + 来源页面（两行） */}
+        <View style={styles.metaBlock}>
+          <Text style={styles.mainTitle} numberOfLines={1}>
+            {currentAudio?.title || '正在播放'}
+          </Text>
+          {!!currentAudio?.pageName && (
+            <Text style={styles.subTitle} numberOfLines={1}>
+              来自：{currentAudio.pageName}
+            </Text>
+          )}
         </View>
 
         {isLoading && (
@@ -107,7 +152,7 @@ export default function PlayerView() {
 
         {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-        {/* 播放控制区 */}
+        {/* 进度条 + 控制区 */}
         <View style={styles.playerControls}>
           <View style={styles.timeRow}>
             <Text style={styles.timeText}>{formatTime(effectivePos)}</Text>
@@ -181,25 +226,60 @@ const getStyles = (c) =>
       borderWidth: 1,
       borderColor: c.border,
     },
-    title: {
-      color: c.text,
-      fontSize: 18,
-      fontWeight: '700',
-      maxWidth: '68%',
-      textAlign: 'center',
-    },
+
     content: {
       flex: 1,
       width: '100%',
       alignItems: 'center',
-      paddingTop: 12,
+      paddingTop: 8,
     },
-    logoContainer: {
-      marginTop: 20,
+
+    // 圆形占位容器（外圈）
+    circleHolder: {
+      width: '68%',
+      aspectRatio: 1,
+      borderRadius: 9999,
+      backgroundColor: c.surfaceCard,
+      borderWidth: 2,
+      borderColor: c.surfaceCardBorder,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 40,
+      overflow: 'hidden',
+      marginTop: 8,
+      shadowColor: c.accentViolet,
+      shadowOpacity: 0.15,
+      shadowOffset: { width: 0, height: 6 },
+      shadowRadius: 12,
+      elevation: 5,
     },
+    // 内圈（固定不旋转，用于包裹占位图标；若未来要整张封面旋转，可把图标直接放到 circleHolder 内）
+    circleInner: {
+      width: '94%',
+      height: '94%',
+      borderRadius: 9999,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.surface,
+    },
+
+    // 两行元信息
+    metaBlock: {
+      width: '86%',
+      alignItems: 'center',
+      marginTop: 16,
+      marginBottom: 12,
+    },
+    mainTitle: {
+      color: c.text,
+      fontSize: 20,
+      fontWeight: '800',
+    },
+    subTitle: {
+      color: c.textMuted,
+      fontSize: 12,
+      marginTop: 6,
+    },
+
     playerControls: {
       width: '100%',
       alignItems: 'center',
