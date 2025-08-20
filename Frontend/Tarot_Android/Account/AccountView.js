@@ -50,7 +50,18 @@ export default function AccountView() {
   const onLogout = () => {
     Alert.alert('确认退出登录吗？', '退出登录后将无法使用会员功能', [
       { text: '取消', style: 'cancel' },
-      { text: '退出', style: 'destructive', onPress: () => {} },
+      {
+        text: '退出',
+        style: 'destructive',
+        onPress: () => {
+          // 如果有用户状态存储，这里可顺便清空 AsyncStorage 或 Redux 状态
+          // 清理完毕后跳转到登录页面
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+          });
+        },
+      },
     ]);
   };
 
