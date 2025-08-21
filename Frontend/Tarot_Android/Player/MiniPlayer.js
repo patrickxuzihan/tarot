@@ -1,4 +1,3 @@
-// /mnt/data/MiniPlayer.js
 import React, { useMemo, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,11 +19,10 @@ export default function MiniPlayer() {
     resumeAudio,
   } = useAudio();
 
-  const progress = Math.min(1, Math.max(0, position / duration));
-  const title = currentAudio?.title || '暂无播放内容';
-  const pageName = currentAudio?.pageName; // 可选的来源页面
+  const progress = Math.min(1, Math.max(0, position / Math.max(1, duration)));
+  const title = currentAudio?.Info || '暂无播放内容';
 
-  // === Animation: pulse when playing ===
+  // 播放时轻微脉冲动画
   const pulse = useRef(new Animated.Value(0)).current;
   const loopRef = useRef(null);
 
@@ -58,7 +56,6 @@ export default function MiniPlayer() {
       >
         <View style={s.left}>
           <View style={s.iconWrap}>
-            {/* animated halo */}
             <Animated.View
               pointerEvents="none"
               style={[
@@ -69,16 +66,11 @@ export default function MiniPlayer() {
                 },
               ]}
             />
-            {/* icon */}
             <Ionicons name="musical-notes" size={22} color={colors.accentGold} />
           </View>
 
-          {/* 标题 + 来源页面（可选） */}
           <View style={s.textWrap}>
             <Text numberOfLines={1} style={s.title}>{title}</Text>
-            {!!pageName && (
-              <Text numberOfLines={1} style={s.subtitle}>来自：{pageName}</Text>
-            )}
           </View>
         </View>
 
@@ -103,7 +95,7 @@ const styles = (c) => StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 70, // 70(tab) + 8
+    bottom: 70,
   },
   card: {
     height: 60,
@@ -129,7 +121,6 @@ const styles = (c) => StyleSheet.create({
   },
   textWrap: { marginLeft: 10, maxWidth: '78%' },
   title: { color: c.text, fontWeight: '700' },
-  subtitle: { color: c.textMuted, fontSize: 12, marginTop: 2 },
   playBtn: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: c.accentGold, alignItems: 'center', justifyContent: 'center',
