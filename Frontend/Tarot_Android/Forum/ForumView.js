@@ -7,18 +7,15 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   SafeAreaView,
   Animated,
   PanResponder,
-  Platform
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import NewPostModal from './NewPostView';
 import { useAppTheme } from '../Account/Setup/ThemesHelper';
-
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
 
 const tagColors = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA94D', '#9C89B8',
@@ -48,6 +45,9 @@ export default function ForumScreen() {
   const [selectedTag, setSelectedTag] = useState('全部');
   const [showNewPost, setShowNewPost] = useState(false);
 
+  // 动态窗口尺寸（旋转会更新）
+  const { width, height } = useWindowDimensions();
+
   useEffect(() => {
     if (route?.params?.openNotifications) {
       navigation.navigate('Notifications');
@@ -55,8 +55,24 @@ export default function ForumScreen() {
     }
   }, [route?.params?.openNotifications]);
 
-  const buttonPosition = useRef(new Animated.ValueXY({ x: screenWidth - 80, y: screenHeight - 180 })).current;
+  // 浮动按钮：位置状态（使用 transform 定位）
+  const buttonPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
 
+  // ✅ 旋转时自动回到右侧垂直居中
+  useEffect(() => {
+    const margin = 20;
+    const buttonSize = 60;
+    const maxX = width - buttonSize - margin;
+    const centerY = (height - buttonSize) / 2;
+
+    Animated.spring(buttonPosition, {
+      toValue: { x: maxX, y: centerY },
+      friction: 7,
+      useNativeDriver: false,
+    }).start();
+  }, [width, height, buttonPosition]);
+
+  // 拖动逻辑保持不变
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -65,19 +81,29 @@ export default function ForumScreen() {
         buttonPosition.setOffset({ x: buttonPosition.x._value, y: buttonPosition.y._value });
         buttonPosition.setValue({ x: 0, y: 0 });
       },
-      onPanResponderMove: Animated.event([null, { dx: buttonPosition.x, dy: buttonPosition.y }], { useNativeDriver: false }),
+      onPanResponderMove: Animated.event([null, { dx: buttonPosition.x, dy: buttonPosition.y }], {
+        useNativeDriver: false,
+      }),
       onPanResponderRelease: () => {
         buttonPosition.flattenOffset();
-        const buttonSize = 60, margin = 20;
-        const maxX = screenWidth - buttonSize - margin;
-        const maxY = screenHeight - buttonSize - margin;
+
+        const margin = 20;
+        const buttonSize = 60;
+        const maxX = width - buttonSize - margin;
+        const maxY = height - buttonSize - margin;
+
         const currentX = buttonPosition.x._value;
         const currentY = buttonPosition.y._value;
+
         const finalY = Math.max(margin, Math.min(currentY, maxY));
-        const screenCenterX = screenWidth / 2;
-        const finalX = currentX + buttonSize / 2 < screenCenterX ? margin : maxX;
-        Animated.spring(buttonPosition, { toValue: { x: finalX, y: finalY }, friction: 7, useNativeDriver: false }).start();
-      }
+        const edgeX = currentX + buttonSize / 2 < width / 2 ? margin : maxX;
+
+        Animated.spring(buttonPosition, {
+          toValue: { x: edgeX, y: finalY },
+          friction: 7,
+          useNativeDriver: false,
+        }).start();
+      },
     })
   ).current;
 
@@ -133,7 +159,7 @@ export default function ForumScreen() {
               style={[
                 styles.tagButton,
                 selectedTag === tag.name && styles.selectedTagButton,
-                { borderColor: tag.color }
+                { borderColor: tag.color },
               ]}
               onPress={() => setSelectedTag(tag.name)}
             >
@@ -141,7 +167,7 @@ export default function ForumScreen() {
                 style={[
                   styles.tagText,
                   { color: tag.color },
-                  selectedTag === tag.name && styles.selectedTagText
+                  selectedTag === tag.name && styles.selectedTagText,
                 ]}
               >
                 #{tag.name}
@@ -154,12 +180,18 @@ export default function ForumScreen() {
       {/* 帖子列表 */}
       <ScrollView contentContainerStyle={styles.postsContainer} showsVerticalScrollIndicator={false}>
         {filteredPosts.map((post) => (
-          <TouchableOpacity key={post.id} style={styles.postCard} onPress={() => navigation.navigate('PostDetail', { post })}>
+          <TouchableOpacity
+            key={post.id}
+            style={styles.postCard}
+            onPress={() => navigation.navigate('PostDetail', { post })}
+          >
             <View style={styles.postTagContainer}>
               <Text style={styles.postTag}>#{post.tag}</Text>
             </View>
             <Text style={styles.postTitle}>{post.title}</Text>
-            <Text style={styles.postContent} numberOfLines={2}>{post.content}</Text>
+            <Text style={styles.postContent} numberOfLines={2}>
+              {post.content}
+            </Text>
             <View style={styles.postFooter}>
               <View style={styles.authorContainer}>
                 <View style={styles.authorIcon}>
@@ -187,13 +219,15 @@ export default function ForumScreen() {
       <Animated.View
         style={[
           styles.newPostButton,
-          {
-            transform: [{ translateX: buttonPosition.x }, { translateY: buttonPosition.y }]
-          }
+          { transform: [{ translateX: buttonPosition.x }, { translateY: buttonPosition.y }] },
         ]}
         {...panResponder.panHandlers}
       >
-        <TouchableOpacity style={styles.newPostButtonInner} onPress={() => setShowNewPost(true)} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.newPostButtonInner}
+          onPress={() => setShowNewPost(true)}
+          activeOpacity={0.7}
+        >
           <Ionicons name="add" size={36} color={colors.text} />
         </TouchableOpacity>
       </Animated.View>
@@ -341,6 +375,8 @@ const getStyles = (c) =>
     },
     statItem: { flexDirection: 'row', alignItems: 'center', marginRight: 20 },
     statText: { color: c.accentGold, marginLeft: 6, fontSize: 14, fontWeight: '500' },
+
+    // 悬浮按钮（绝对定位 + transform）
     newPostButton: {
       position: 'absolute',
       backgroundColor: c.accent,
