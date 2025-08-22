@@ -1,5 +1,15 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet, Dimensions, SafeAreaView, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  SafeAreaView,
+  Animated,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAudio } from './Player/AudioContext';
@@ -14,10 +24,24 @@ export default function HomeScreen({ navigation }) {
 
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const scrollViewRef = useRef(null);
+
+  // 更新后的 ads 数据
   const ads = [
-    require('./assets/ad/ad1.jpg'),
-    require('./assets/ad/ad2.jpg'),
-    require('./assets/ad/ad3.jpg'),
+    {
+      image: require('./assets/ad/ad1.jpg'),
+      type: 'AdView',
+      target: 'AdView',
+    },
+    {
+      image: require('./assets/ad/ad2.jpg'),
+      type: 'AdView',
+      target: 'AdView',
+    },
+    {
+      image: require('./assets/ad/ad3.jpg'),
+      type: 'web',
+      target: 'https://rickroll.it',
+    },
   ];
 
   // 动画
@@ -108,10 +132,19 @@ export default function HomeScreen({ navigation }) {
     console.log(`点击了话题 #${id}`);
   };
 
+  // 点击广告的处理逻辑
+  const handleAdPress = (ad) => {
+    if (ad.type === 'AdView') {
+      navigation.navigate('AdView', { image: ad.image });
+    } else if (ad.type === 'web') {
+      navigation.navigate('WebView', { url: ad.target });
+    }
+  };
+
   return (
     <LinearGradient colors={bgGradient} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
-        {/* 顶部Header栏 */}
+        {/* 顶部 Header */}
         <View style={styles.headerContainer}>
           <View style={styles.headerLeft}>
             <View style={styles.moonIconContainer}>
@@ -123,7 +156,7 @@ export default function HomeScreen({ navigation }) {
             </View>
           </View>
 
-          {/* 右侧只保留通知与设置；删除进入播放器的旧入口 */}
+          {/* 右侧按钮 */}
           <View style={styles.iconRow}>
             <TouchableOpacity
               style={styles.circleButton}
@@ -168,16 +201,18 @@ export default function HomeScreen({ navigation }) {
               },
             ]}
           >
-            <TouchableOpacity style={styles.quickCard}
+            <TouchableOpacity
+              style={styles.quickCard}
               activeOpacity={0.7}
               onPress={() =>
                 navigation.getParent()?.navigate('塔罗宮能', {
                   screen: 'TarotEnergyMain',
                   params: {
-                    openQuickDivination: true
+                    openQuickDivination: true,
                   },
                 })
-              }>
+              }
+            >
               <Animated.View
                 style={[
                   styles.starContainer,
@@ -200,9 +235,17 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           {/* 轮播图 */}
-          <ScrollView ref={scrollViewRef} horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.carousel}>
+          <ScrollView
+            ref={scrollViewRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            style={styles.carousel}
+          >
             {ads.map((ad, index) => (
-              <Image key={index} source={ad} style={styles.adImage} />
+              <TouchableOpacity key={index} activeOpacity={0.8} onPress={() => handleAdPress(ad)}>
+                <Image source={ad.image} style={styles.adImage} />
+              </TouchableOpacity>
             ))}
           </ScrollView>
 
@@ -305,9 +348,7 @@ const getStyles = (c) =>
       textShadowOffset: { width: 0, height: 0 },
       textShadowRadius: 5,
     },
-
     container: { flex: 1, backgroundColor: 'transparent', paddingTop: 16 },
-
     sectionHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12 },
     sectionHeaderText: {
       fontSize: 24,
@@ -317,7 +358,6 @@ const getStyles = (c) =>
       textShadowOffset: { width: 0, height: 0 },
       textShadowRadius: 5,
     },
-
     quickCardShadow: {
       marginHorizontal: 16,
       marginVertical: 16,
@@ -350,11 +390,15 @@ const getStyles = (c) =>
     },
     starContainer: { marginBottom: 8 },
     hintText: { color: c.subtext, fontSize: 18, marginTop: 12 },
-
     carousel: { marginBottom: 24, marginHorizontal: 16, borderRadius: 16, overflow: 'hidden', height: 220 },
     adImage: { width: screenWidth - 32, height: 220, resizeMode: 'cover', borderRadius: 16 },
-
-    topicGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 16 },
+    topicGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
     topicCard: {
       width: '48%',
       height: 140,
@@ -367,7 +411,6 @@ const getStyles = (c) =>
       backgroundColor: c.surfaceCard,
     },
     viewAllText: { color: c.subtext, fontSize: 16, fontWeight: '500', paddingHorizontal: 8 },
-
     topicHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
     topicIcon: {
       backgroundColor: c.surfaceGlass,

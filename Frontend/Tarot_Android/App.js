@@ -14,6 +14,8 @@ import PasswordLoginView from './Authentication/PasswordLoginView';
 import RegistrationView from './Authentication/RegistrationView';
 import HomeView from './HomeView';
 import PlayerView from './Player/PlayerView';
+import WebViewScreen from './Ad/WebView';
+import AdView from './Ad/AdView';
 
 const Stack = createNativeStackNavigator();
 
@@ -107,6 +109,18 @@ function NavWrapper() {
           <Stack.Screen
             name="Player"
             component={PlayerView}
+            options={{ gestureEnabled: true }}
+          />
+
+          <Stack.Screen
+            name="WebView"
+            component={WebViewScreen}
+            options={{ gestureEnabled: true }}
+          />
+
+          <Stack.Screen
+            name="AdView"
+            component={AdView}
             options={{ gestureEnabled: true }}
           />
         </Stack.Navigator>
