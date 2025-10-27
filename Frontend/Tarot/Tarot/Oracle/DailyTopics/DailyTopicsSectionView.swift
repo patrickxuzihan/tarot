@@ -3,7 +3,7 @@
 //  Tarot
 //
 //  Created by Xu Zihan on 6/28/25.
-//  重构：支持显示指定数量的话题卡片
+//  重构：支持显示指定数量的话题卡片，可跳转到详情页
 
 import SwiftUI
 
@@ -109,12 +109,9 @@ struct DailyTopicsSectionView: View {
         .padding(.horizontal, 5)
     }
     
-    // MARK: - 话题卡片
+    // MARK: - 话题卡片（带跳转）
     private func topicCard(topic: DailyTopic) -> some View {
-        Button(action: {
-            print("点击了话题：\(topic.title)")
-            // TODO: 跳转到话题详情页
-        }) {
+        NavigationLink(destination: DailyTopicDetailView(topic: topic)) {
             VStack(alignment: .leading, spacing: 8) {
                 // 顶部：图标 + 时间
                 HStack {
@@ -156,6 +153,7 @@ struct DailyTopicsSectionView: View {
                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
             )
         }
+        .buttonStyle(PlainButtonStyle()) // 保持卡片样式
     }
 }
 
@@ -172,26 +170,28 @@ struct DailyTopic: Identifiable {
 // MARK: - Preview
 struct DailyTopicsSectionView_Previews: PreviewProvider {
     static var previews: some View {
-        ZStack {
-            Color.black.edgesIgnoringSafeArea(.all)
-            
-            VStack(spacing: 40) {
-                // 预览1：主页模式（6个话题，带标题）
-                DailyTopicsSectionView(
-                    displayCount: 6,
-                    showHeader: true,
-                    showAllDestination: { AnyView(Text("完整页面")) }
-                )
-                .padding(.horizontal, 20)
+        NavigationStack {
+            ZStack {
+                Color.black.edgesIgnoringSafeArea(.all)
                 
-                Divider().background(Color.white)
-                
-                // 预览2：完整模式（30个话题，不带标题）
-                ScrollView {
+                VStack(spacing: 40) {
+                    // 预览1：主页模式（6个话题，带标题）
                     DailyTopicsSectionView(
-                        displayCount: 30,
-                        showHeader: false
+                        displayCount: 6,
+                        showHeader: true,
+                        showAllDestination: { AnyView(Text("完整页面")) }
                     )
+                    .padding(.horizontal, 20)
+                    
+                    Divider().background(Color.white)
+                    
+                    // 预览2：完整模式（30个话题，不带标题）
+                    ScrollView {
+                        DailyTopicsSectionView(
+                            displayCount: 30,
+                            showHeader: false
+                        )
+                    }
                 }
             }
         }
