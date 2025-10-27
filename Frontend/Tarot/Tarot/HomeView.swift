@@ -278,31 +278,16 @@ private extension HomeView {
         print("点击了广告 #\(index+1)")
     }
     
+
     // MARK: - 每日塔罗话题 Section
     private var dailyTopicsSection: some View {
-        VStack(spacing: 15) {
-            HStack {
-                Text("每日塔罗话题")
-                    .font(.title3).fontWeight(.bold)
-                    .foregroundColor(.white)
-                Spacer()
-                NavigationLink(destination: DailyTopicsView()) {
-                    Text("查看全部")
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
-                }
+        DailyTopicsSectionView(
+            displayCount: 6,  // ✅ 只显示最新6个
+            showHeader: true,
+            showAllDestination: {
+                AnyView(DailyTopicsView())  // 点击"查看全部"跳转到完整页面
             }
-            .padding(.horizontal, 5)
-            
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 15),
-                GridItem(.flexible())
-            ], spacing: 15) {
-                ForEach(1...10, id: \.self) { i in
-                    dailyTopicCard(index: i)
-                }
-            }
-        }
+        )
     }
     
     private func dailyTopicCard(index: Int) -> some View {

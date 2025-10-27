@@ -1,9 +1,10 @@
+
 //
 //  DailyTopicsView.swift
 //  Tarot
 //
 //  Created by Xu Zihan on 7/14/25.
-//
+//  重构：显示完整的30个每日话题
 
 import SwiftUI
 
@@ -23,6 +24,7 @@ struct DailyTopicsView: View {
             
             ScrollView {
                 VStack(spacing: 20) {
+                    // 页面标题
                     Text("每日塔罗话题")
                         .font(.largeTitle)
                         .fontWeight(.bold)
@@ -30,9 +32,21 @@ struct DailyTopicsView: View {
                         .padding(.top, 20)
                         .shadow(color: .purple, radius: 5)
                     
-                    // 使用您提供的每日话题组件
-                    DailyTopicsSectionView()
-                        .padding(.horizontal, 20)
+                    // 说明文字
+                    Text("30天神秘话题，每日更新探索")
+                        .font(.subheadline)
+                        .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+                        .padding(.bottom, 10)
+                    
+                    // ✅ 显示全部30个话题（不显示标题栏）
+                    DailyTopicsSectionView(
+                        displayCount: 30,
+                        showHeader: false
+                    )
+                    .padding(.horizontal, 20)
+                    
+                    // 底部间距
+                    Spacer().frame(height: 30)
                 }
             }
         }
