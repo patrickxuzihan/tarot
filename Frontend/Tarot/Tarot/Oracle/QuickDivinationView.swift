@@ -94,15 +94,15 @@ struct QuickDivinationView: View {
             }
             .navigationBarTitle("塔罗占卜", displayMode: .inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    HStack {
-                        Image(systemName: "moon.stars.fill")
-                            .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
-                        Text("快速占卜")
-                            .font(.subheadline)
-                            .foregroundColor(.white)
-                    }
-                }
+//                ToolbarItem(placement: .navigationBarLeading) {
+//                    HStack {
+//                        Image(systemName: "moon.stars.fill")
+//                            .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
+//                        Text("快速占卜")
+//                            .font(.subheadline)
+//                            .foregroundColor(.white)
+//                    }
+//                }
             }
             .onAppear {
                 // 欢迎信息
