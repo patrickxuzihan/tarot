@@ -73,21 +73,24 @@ struct TarotEnergyView: View {
                         }
                         .padding(.horizontal, 15)
                         
-                        // 进阶功能区域
-                        advancedFunctionsSection
-                            .padding(.horizontal, 20)
                         
-                        // 星座占卜区域
-                        horoscopeSection
-                            .padding(.horizontal, 20)
+                        //暂时隐藏
+//                        // 进阶功能区域
+//                        advancedFunctionsSection
+//                            .padding(.horizontal, 20)
+//                        
+//                        // 星座占卜区域
+//                        horoscopeSection
+//                            .padding(.horizontal, 20)
+//                        
+                        //暂时隐藏
+//                        // 塔罗知识库
+//                        tarotKnowledgeSection
+//                            .padding(.horizontal, 20)
                         
-                        // 塔罗知识库
-                        tarotKnowledgeSection
-                            .padding(.horizontal, 20)
-                        
-                        // 精选塔罗教学
-                        featuredTarotLessonsSection
-                            .padding(.horizontal, 20)
+//                        // 精选塔罗教学
+//                        featuredTarotLessonsSection
+//                            .padding(.horizontal, 20)
                     }
                     .padding(.bottom, 30)
                 }
@@ -402,165 +405,165 @@ struct TarotEnergyView: View {
         }
     }
     
-    // MARK: - 塔罗知识库
-    private var tarotKnowledgeSection: some View {
-        VStack(spacing: 20) {
-            SectionHeader(title: "塔罗知识库", subtitle: "智慧与传承")
-            
-            VStack(spacing: 12) {
-                tarotKnowledgeCard(
-                    title: "塔罗起源",
-                    content: "塔罗牌起源于15世纪的意大利，最初作为纸牌游戏使用，后来发展为占卜工具。",
-                    icon: "hourglass",
-                    color: Color(red: 0.6, green: 0.3, blue: 0.8)
-                )
-                
-                tarotKnowledgeCard(
-                    title: "大阿卡纳",
-                    content: "22张大阿卡纳牌代表人生的重要课题和精神旅程，每张牌都有深刻的象征意义。",
-                    icon: "crown.fill",
-                    color: Color(red: 0.5, green: 0.2, blue: 0.7)
-                )
-                
-                tarotKnowledgeCard(
-                    title: "牌阵意义",
-                    content: "不同的牌阵揭示不同层面的信息，三牌阵适合快速占卜，凯尔特十字适合深度分析。",
-                    icon: "square.grid.3x3.fill",
-                    color: Color(red: 0.4, green: 0.1, blue: 0.6)
-                )
-            }
-        }
-    }
+//    // MARK: - 塔罗知识库
+//    private var tarotKnowledgeSection: some View {
+//        VStack(spacing: 20) {
+//            SectionHeader(title: "塔罗知识库", subtitle: "智慧与传承")
+//            
+//            VStack(spacing: 12) {
+//                tarotKnowledgeCard(
+//                    title: "塔罗起源",
+//                    content: "塔罗牌起源于15世纪的意大利，最初作为纸牌游戏使用，后来发展为占卜工具。",
+//                    icon: "hourglass",
+//                    color: Color(red: 0.6, green: 0.3, blue: 0.8)
+//                )
+//                
+//                tarotKnowledgeCard(
+//                    title: "大阿卡纳",
+//                    content: "22张大阿卡纳牌代表人生的重要课题和精神旅程，每张牌都有深刻的象征意义。",
+//                    icon: "crown.fill",
+//                    color: Color(red: 0.5, green: 0.2, blue: 0.7)
+//                )
+//                
+//                tarotKnowledgeCard(
+//                    title: "牌阵意义",
+//                    content: "不同的牌阵揭示不同层面的信息，三牌阵适合快速占卜，凯尔特十字适合深度分析。",
+//                    icon: "square.grid.3x3.fill",
+//                    color: Color(red: 0.4, green: 0.1, blue: 0.6)
+//                )
+//            }
+//        }
+//    }
+//    
+//    private func tarotKnowledgeCard(title: String, content: String, icon: String, color: Color) -> some View {
+//        HStack(spacing: 12) {
+//            Image(systemName: icon)
+//                .font(.title)
+//                .foregroundColor(.white)
+//                .padding(12)
+//                .background(Circle().fill(color))
+//            
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text(title)
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(.white)
+//                
+//                Text(content)
+//                    .font(.caption)
+//                    .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
+//                    .fixedSize(horizontal: false, vertical: true)
+//            }
+//        }
+//        .padding(15)
+//        .frame(maxWidth: .infinity)
+//        .background(
+//            RoundedRectangle(cornerRadius: 18)
+//                .fill(Color(red: 0.15, green: 0.07, blue: 0.3))
+//        )
+//        .overlay(
+//            RoundedRectangle(cornerRadius: 18)
+//                .stroke(color.opacity(0.3), lineWidth: 1)
+//        )
+//    }
     
-    private func tarotKnowledgeCard(title: String, content: String, icon: String, color: Color) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.title)
-                .foregroundColor(.white)
-                .padding(12)
-                .background(Circle().fill(color))
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                
-                Text(content)
-                    .font(.caption)
-                    .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .padding(15)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color(red: 0.15, green: 0.07, blue: 0.3))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(color.opacity(0.3), lineWidth: 1)
-        )
-    }
+//    // MARK: - 精选塔罗教学
+//    private var featuredTarotLessonsSection: some View {
+//        VStack(spacing: 20) {
+//            SectionHeader(title: "塔罗教学", subtitle: "精选课程")
+//            
+//            VStack(spacing: 15) {
+//                // 大班轮播图
+//                TabView {
+//                    ForEach(1...3, id: \.self) { index in
+//                        featuredLessonCard(index: index)
+//                    }
+//                }
+//                .tabViewStyle(.page(indexDisplayMode: .never))
+//                .frame(height: 150)
+//                
+//                // 小班课程链接
+//                HStack(spacing: 20) {
+//                    featuredSmallLesson(title: "大阿卡纳", symbol: "moon.stars.fill")
+//                    featuredSmallLesson(title: "小阿卡纳", symbol: "sparkles")
+//                    featuredSmallLesson(title: "牌阵指南", symbol: "square.stack.3d.down.right.fill")
+//                }
+//            }
+//            .padding(15)
+//            .background(
+//                RoundedRectangle(cornerRadius: 18)
+//                    .fill(Color(red: 0.15, green: 0.07, blue: 0.3))
+//            )
+//            .overlay(
+//                RoundedRectangle(cornerRadius: 18)
+//                    .stroke(Color(red: 0.5, green: 0.2, blue: 0.7).opacity(0.3), lineWidth: 1)
+//            )
+//        }
+//    }
     
-    // MARK: - 精选塔罗教学
-    private var featuredTarotLessonsSection: some View {
-        VStack(spacing: 20) {
-            SectionHeader(title: "塔罗教学", subtitle: "精选课程")
-            
-            VStack(spacing: 15) {
-                // 大班轮播图
-                TabView {
-                    ForEach(1...3, id: \.self) { index in
-                        featuredLessonCard(index: index)
-                    }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 150)
-                
-                // 小班课程链接
-                HStack(spacing: 20) {
-                    featuredSmallLesson(title: "大阿卡纳", symbol: "moon.stars.fill")
-                    featuredSmallLesson(title: "小阿卡纳", symbol: "sparkles")
-                    featuredSmallLesson(title: "牌阵指南", symbol: "square.stack.3d.down.right.fill")
-                }
-            }
-            .padding(15)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color(red: 0.15, green: 0.07, blue: 0.3))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(Color(red: 0.5, green: 0.2, blue: 0.7).opacity(0.3), lineWidth: 1)
-            )
-        }
-    }
+//    private func featuredLessonCard(index: Int) -> some View {
+//        let colors: [Color] = [
+//            Color(red: 0.6, green: 0.3, blue: 0.8),
+//            Color(red: 0.5, green: 0.2, blue: 0.7),
+//            Color(red: 0.4, green: 0.1, blue: 0.6)
+//        ]
+//        
+//        return VStack {
+//            HStack {
+//                VStack(alignment: .leading, spacing: 6) {
+//                    Text("第 \(index) 课：塔罗基础入门")
+//                        .font(.callout)
+//                        .fontWeight(.bold)
+//                        .foregroundColor(.white)
+//                        .padding(.top, 5)
+//                    
+//                    Text("学习正逆位含义与象征")
+//                        .font(.caption)
+//                        .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
+//                    
+//                    Spacer()
+//                    
+//                    HStack {
+//                        Image(systemName: "clock")
+//                        Text("25分钟")
+//                            .font(.caption2)
+//                    }
+//                    .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+//                    .padding(.bottom, 5)
+//                }
+//                
+//                Spacer()
+//                
+//                Image(systemName: "play.circle.fill")
+//                    .font(.system(size: 40))
+//                    .foregroundColor(.white)
+//            }
+//            .padding(15)
+//        }
+//        .frame(maxWidth: .infinity)
+//        .background(colors[index % colors.count].opacity(0.9))
+//        .cornerRadius(15)
+//        .padding(.horizontal, 15)
+//    }
     
-    private func featuredLessonCard(index: Int) -> some View {
-        let colors: [Color] = [
-            Color(red: 0.6, green: 0.3, blue: 0.8),
-            Color(red: 0.5, green: 0.2, blue: 0.7),
-            Color(red: 0.4, green: 0.1, blue: 0.6)
-        ]
-        
-        return VStack {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("第 \(index) 课：塔罗基础入门")
-                        .font(.callout)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.top, 5)
-                    
-                    Text("学习正逆位含义与象征")
-                        .font(.caption)
-                        .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
-                    
-                    Spacer()
-                    
-                    HStack {
-                        Image(systemName: "clock")
-                        Text("25分钟")
-                            .font(.caption2)
-                    }
-                    .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
-                    .padding(.bottom, 5)
-                }
-                
-                Spacer()
-                
-                Image(systemName: "play.circle.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.white)
-            }
-            .padding(15)
-        }
-        .frame(maxWidth: .infinity)
-        .background(colors[index % colors.count].opacity(0.9))
-        .cornerRadius(15)
-        .padding(.horizontal, 15)
-    }
-    
-    private func featuredSmallLesson(title: String, symbol: String) -> some View {
-        NavigationLink(destination: TarotTutorialView()) {
-            VStack {
-                Image(systemName: symbol)
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Circle().fill(Color(red: 0.5, green: 0.2, blue: 0.7)))
-                
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
-                    .multilineTextAlignment(.center)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity)
-        }
-    }
+//    private func featuredSmallLesson(title: String, symbol: String) -> some View {
+//        NavigationLink(destination: TarotTutorialView()) {
+//            VStack {
+//                Image(systemName: symbol)
+//                    .font(.title2)
+//                    .foregroundColor(.white)
+//                    .padding(8)
+//                    .background(Circle().fill(Color(red: 0.5, green: 0.2, blue: 0.7)))
+//                
+//                Text(title)
+//                    .font(.caption)
+//                    .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
+//                    .multilineTextAlignment(.center)
+//                    .lineLimit(1)
+//            }
+//            .frame(maxWidth: .infinity)
+//        }
+//    }
 }
 
 // MARK: - 自定义视图组件
