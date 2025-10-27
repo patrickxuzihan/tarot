@@ -29,15 +29,15 @@ struct HomeView: View {
                 }
                 .tag(0)
             
-            // ② 论坛
-            NavigationStack {
-                ForumView()
-            }
-            .tabItem {
-                Image(systemName: "bubble.left.and.bubble.right.fill")
-                Text("论坛")
-            }
-            .tag(1)
+//            // ② 论坛
+//            NavigationStack {
+//                ForumView()
+//            }
+//            .tabItem {
+//                Image(systemName: "bubble.left.and.bubble.right.fill")
+//                Text("论坛")
+//            }
+//            .tag(1)
             
             // ③ 塔罗宫能（占位）
             NavigationStack {
@@ -47,7 +47,7 @@ struct HomeView: View {
                 Image(systemName: "square.grid.3x3.fill")
                 Text("塔罗宫能")
             }
-            .tag(2)
+            .tag(1)
             
             // ④ 塔罗屋（占位）
             NavigationStack {
@@ -57,7 +57,7 @@ struct HomeView: View {
                 Image(systemName: "archivebox.fill")
                 Text("塔罗屋")
             }
-            .tag(3)
+            .tag(2)
             
             // ⑤ 账号中心
             NavigationStack {
@@ -67,7 +67,7 @@ struct HomeView: View {
                 Image(systemName: "person.crop.circle.fill")
                 Text("我")
             }
-            .tag(4)
+            .tag(3)
         }
         .onAppear {
             initializeAdViews()
