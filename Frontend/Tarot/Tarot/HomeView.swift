@@ -286,10 +286,10 @@ private extension HomeView {
                     .font(.title3).fontWeight(.bold)
                     .foregroundColor(.white)
                 Spacer()
-                NavigationLink(destination: DailyTopicsSectionView()) {
+                NavigationLink(destination: DailyTopicsView()) {
                     Text("查看全部")
-                        .font(.subheadline)
-                        .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
+                    .font(.subheadline)
+                    .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
                 }
             }
             .padding(.horizontal, 5)
