@@ -49,15 +49,15 @@ struct HomeView: View {
             }
             .tag(1)
             
-            // ④ 塔罗屋（占位）
-            NavigationStack {
-                TarotHouseView()
-            }
-            .tabItem {
-                Image(systemName: "archivebox.fill")
-                Text("塔罗屋")
-            }
-            .tag(2)
+//            // ④ 塔罗屋（占位）
+//            NavigationStack {
+//                TarotHouseView()
+//            }
+//            .tabItem {
+//                Image(systemName: "archivebox.fill")
+//                Text("塔罗屋")
+//            }
+//            .tag(2)
             
             // ⑤ 账号中心
             NavigationStack {
@@ -67,7 +67,7 @@ struct HomeView: View {
                 Image(systemName: "person.crop.circle.fill")
                 Text("我")
             }
-            .tag(3)
+            .tag(2)
         }
         .onAppear {
             initializeAdViews()
