@@ -3,7 +3,7 @@
 //  Tarot
 //
 //  Created by Xu Zihan on 7/26/25.
-//
+//  优化：支持上下文连续的对话
 
 import SwiftUI
 
@@ -39,10 +39,11 @@ struct QuickDivinationView: View {
     // 预设 prompt（将用于 API 调用）
     private let systemPrompt = """
     你是一位塔罗解读师，用最口语化的方式给出不超过600字的指引。
-    1. 请先“模拟抽三张塔罗牌”，然后结合正逆位说一两句。
-    2. 不要出现“AI”、“模型”之类词汇。
-    3. 不只是解读牌，还要给个实际例子，比如“比如你在职场…”，让建议更贴地气。
+    1. 请先"模拟抽三张塔罗牌"，然后结合正逆位说一两句。
+    2. 不要出现"AI"、"模型"之类词汇。
+    3. 不只是解读牌，还要给个实际例子，比如"比如你在职场…"，让建议更贴地气。
     4. 结尾保持一句行动建议即可。
+    5. 如果这是用户的第二次提问，请基于之前的占卜结果继续解读，保持前后连贯。
     """
     
     var body: some View {
@@ -80,84 +81,59 @@ struct QuickDivinationView: View {
                         }
                     }
                     
-                    // 占卜次数用尽提示
-                    if sentCount >= 2 {
-                        Text("本轮占卜次数已用完")
-                            .font(.footnote)
-                            .foregroundColor(.red)
-                            .padding(.bottom, 4)
-                    }
+                    // 占卜次数提示
+                    occupyCountHint
                     
                     // 输入区
                     chatInputView
                 }
             }
             .navigationBarTitle("塔罗占卜", displayMode: .inline)
-            .toolbar {
-//                ToolbarItem(placement: .navigationBarLeading) {
-//                    HStack {
-//                        Image(systemName: "moon.stars.fill")
-//                            .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
-//                        Text("快速占卜")
-//                            .font(.subheadline)
-//                            .foregroundColor(.white)
-//                    }
-//                }
-            }
-            .onAppear {
-                // 欢迎信息
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    messages.append(Message(
-                        content: "欢迎来到塔罗占卜🔮\n请描述您的困惑或问题。",
-                        isUser: false
-                    ))
-                }
-            }
         }
-        .preferredColorScheme(.dark)
     }
     
-    // MARK: - 欢迎区
+    // MARK: - 占卜次数提示
+    private var occupyCountHint: some View {
+        Group {
+            if sentCount >= 2 {
+                Text("本轮占卜次数已用完")
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .padding(.bottom, 4)
+            } else if sentCount == 1 {
+                Text("还可以追问 1 次")
+                    .font(.footnote)
+                    .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+                    .padding(.bottom, 4)
+            }
+        }
+    }
+    
+    // MARK: - 欢迎区域
     private var welcomeSection: some View {
         VStack(spacing: 15) {
-            Image(systemName: "hand.tap.fill")
-                .font(.system(size: 28))
-                .symbolEffect(.bounce.up, value: UUID())
+            Image(systemName: "sparkles")
+                .font(.system(size: 50))
                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
+                .symbolEffect(.pulse)
             
-            Text("神秘塔罗指引")
-                .font(.title2).fontWeight(.bold)
+            Text("欢迎来到塔罗占卜")
+                .font(.title2)
+                .fontWeight(.bold)
                 .foregroundColor(.white)
-                .shadow(color: Color(red: 0.8, green: 0.3, blue: 1.0), radius: 2)
             
-            Text("请输入您的问题或困惑")
+            Text("你可以提出两个问题\n第二个问题可以是第一个的延续")
                 .font(.subheadline)
-                .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
-                .opacity(0.9)
+                .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
         }
-        .padding(.vertical, 25)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 25)
-                .fill(Color(red: 0.25, green: 0.15, blue: 0.4))
-                .shadow(color: .purple.opacity(0.4), radius: 15, y: 5)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 25)
-                .stroke(
-                    LinearGradient(
-                        colors: [Color(red: 0.7, green: 0.3, blue: 0.8), .purple],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-        )
+        .padding(.vertical, 20)
     }
     
-    // MARK: - 聊天消息视图
+    // MARK: - 聊天气泡
     private func chatMessageView(message: Message) -> some View {
-        HStack(alignment: .top, spacing: 6) {
+        HStack(alignment: .top, spacing: 8) {
             if !message.isUser {
                 Image(systemName: "sparkles")
                     .font(.system(size: 36))
@@ -291,7 +267,7 @@ struct QuickDivinationView: View {
         }
     }
     
-    // MARK: - 发送消息
+    // MARK: - 发送消息（支持上下文连续）
     private func sendMessage() {
         guard sentCount < 2 else { return }
         sentCount += 1
@@ -305,6 +281,17 @@ struct QuickDivinationView: View {
         inputText = ""
         isTyping = true
         
+        // 🔥 关键改动：构建完整的对话历史
+        var apiMessages: [[String: String]] = [
+            ["role": "system", "content": systemPrompt]
+        ]
+        
+        // 将之前的所有对话加入到 messages 数组
+        for message in messages {
+            let role = message.isUser ? "user" : "assistant"
+            apiMessages.append(["role": role, "content": message.content])
+        }
+        
         // 构造 DeepSeek 请求
         var req = URLRequest(url: endpointURL)
         req.httpMethod = "POST"
@@ -313,24 +300,29 @@ struct QuickDivinationView: View {
         
         let body: [String: Any] = [
             "model": modelName,
-            "messages": [
-                ["role": "system", "content": systemPrompt],
-                ["role": "user",   "content": userInput]
-            ]
+            "messages": apiMessages  // ✅ 发送完整对话历史
         ]
+        
+        // 调试打印（可选）
+        if let jsonData = try? JSONSerialization.data(withJSONObject: body, options: .prettyPrinted),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            print("📤 发送的完整消息历史：\n\(jsonString)")
+        }
+        
         req.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
         URLSession.shared.dataTask(with: req) { data, resp, err in
             // 调试打印
             if let err = err {
-                print("Network error:", err)
+                print("❌ Network error:", err)
             }
             if let http = resp as? HTTPURLResponse {
-                print("Status code:", http.statusCode)
+                print("📊 Status code:", http.statusCode)
             }
             if let data = data, let body = String(data: data, encoding: .utf8) {
-                print("Response body:", body)
+                print("📥 Response body:", body)
             }
+            
             DispatchQueue.main.async {
                 isTyping = false
                 guard
@@ -343,7 +335,11 @@ struct QuickDivinationView: View {
                     messages.append(Message(content: "请求出错，请稍后再试。", isUser: false))
                     return
                 }
-                messages.append(Message(content: content.trimmingCharacters(in: .whitespacesAndNewlines), isUser: false))
+                
+                let aiResponse = content.trimmingCharacters(in: .whitespacesAndNewlines)
+                messages.append(Message(content: aiResponse, isUser: false))
+                
+                print("✅ AI回复成功，当前对话轮数：\(sentCount)/2")
             }
         }.resume()
     }
