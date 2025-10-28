@@ -3,7 +3,7 @@
 //  Tarot
 //
 //  Created by Xu Zihan on 7/26/25.
-//  优化：支持上下文连续的对话
+//  悬浮窗一直显示，用户可主动关闭
 
 import SwiftUI
 
@@ -19,7 +19,9 @@ struct QuickDivinationView: View {
     @State private var messages: [Message] = []
     @State private var inputText = ""
     @State private var isTyping = false
-    @State private var sentCount = 0   // 记录用户已发送次数
+    @State private var sentCount = 0
+    @State private var showCardOverlay = true  // ✅ 默认显示悬浮窗
+    @State private var currentCards: [TarotCardData] = TarotCardData.randomCards()  // ✅ 初始就有牌
     
     // 深色风格配置
     private let backgroundColor = LinearGradient(
@@ -36,7 +38,7 @@ struct QuickDivinationView: View {
     private let modelName = "deepseek-reasoner"
     private let endpointURL = URL(string: "https://api.deepseek.com/v1/chat/completions")!
     
-    // 预设 prompt（将用于 API 调用）
+    // 预设 prompt
     private let systemPrompt = """
     你是一位塔罗解读师，用最口语化的方式给出不超过600字的指引。
     1. 请先"模拟抽三张塔罗牌"，然后结合正逆位说一两句。
@@ -57,9 +59,15 @@ struct QuickDivinationView: View {
                     ScrollViewReader { scrollProxy in
                         ScrollView {
                             VStack(spacing: 15) {
+                                // ✅ 为悬浮窗预留空间
+                                if showCardOverlay {
+                                    Color.clear.frame(height: 150)
+                                }
+                                
+                                // 精简的欢迎区域
                                 welcomeSection
-                                    .padding(.top, 20)
-                                    .padding(.bottom, 15)
+                                    .padding(.top, showCardOverlay ? 0 : 20)
+                                    .padding(.bottom, 10)
                                 
                                 ForEach(messages) { message in
                                     chatMessageView(message: message)
@@ -87,6 +95,19 @@ struct QuickDivinationView: View {
                     // 输入区
                     chatInputView
                 }
+                
+                // ✅ 塔罗牌展示悬浮窗（默认显示）
+                if showCardOverlay {
+                    TarotCardOverlay(
+                        cards: currentCards,
+                        onDismiss: {
+                            withAnimation(.spring(response: 0.3)) {
+                                showCardOverlay = false
+                            }
+                        }
+                    )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
             }
             .navigationBarTitle("塔罗占卜", displayMode: .inline)
         }
@@ -109,26 +130,19 @@ struct QuickDivinationView: View {
         }
     }
     
-    // MARK: - 欢迎区域
+    // MARK: - 精简的欢迎区域
     private var welcomeSection: some View {
-        VStack(spacing: 15) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 50))
-                .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
-                .symbolEffect(.pulse)
-            
+        VStack(spacing: 8) {
             Text("欢迎来到塔罗占卜")
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(.headline)
+                .fontWeight(.semibold)
                 .foregroundColor(.white)
             
-            Text("你可以提出两个问题\n第二个问题可以是第一个的延续")
-                .font(.subheadline)
+            Text("可提问两次，第二次可延续第一次")
+                .font(.caption)
                 .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
         }
-        .padding(.vertical, 20)
+        .padding(.vertical, 10)
     }
     
     // MARK: - 聊天气泡
@@ -180,7 +194,7 @@ struct QuickDivinationView: View {
                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
                 .symbolEffect(.bounce, value: UUID())
             
-            Text("塔罗精灵正在加载牌面…")
+            Text("塔罗精灵正在解读牌面…")
                 .font(.system(size: 14))
                 .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
             
@@ -267,7 +281,7 @@ struct QuickDivinationView: View {
         }
     }
     
-    // MARK: - 发送消息（支持上下文连续）
+    // MARK: - 发送消息
     private func sendMessage() {
         guard sentCount < 2 else { return }
         sentCount += 1
@@ -281,12 +295,11 @@ struct QuickDivinationView: View {
         inputText = ""
         isTyping = true
         
-        // 🔥 关键改动：构建完整的对话历史
+        // 构建完整的对话历史
         var apiMessages: [[String: String]] = [
             ["role": "system", "content": systemPrompt]
         ]
         
-        // 将之前的所有对话加入到 messages 数组
         for message in messages {
             let role = message.isUser ? "user" : "assistant"
             apiMessages.append(["role": role, "content": message.content])
@@ -300,29 +313,12 @@ struct QuickDivinationView: View {
         
         let body: [String: Any] = [
             "model": modelName,
-            "messages": apiMessages  // ✅ 发送完整对话历史
+            "messages": apiMessages
         ]
-        
-        // 调试打印（可选）
-        if let jsonData = try? JSONSerialization.data(withJSONObject: body, options: .prettyPrinted),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            print("📤 发送的完整消息历史：\n\(jsonString)")
-        }
         
         req.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
         URLSession.shared.dataTask(with: req) { data, resp, err in
-            // 调试打印
-            if let err = err {
-                print("❌ Network error:", err)
-            }
-            if let http = resp as? HTTPURLResponse {
-                print("📊 Status code:", http.statusCode)
-            }
-            if let data = data, let body = String(data: data, encoding: .utf8) {
-                print("📥 Response body:", body)
-            }
-            
             DispatchQueue.main.async {
                 isTyping = false
                 guard
@@ -338,8 +334,6 @@ struct QuickDivinationView: View {
                 
                 let aiResponse = content.trimmingCharacters(in: .whitespacesAndNewlines)
                 messages.append(Message(content: aiResponse, isUser: false))
-                
-                print("✅ AI回复成功，当前对话轮数：\(sentCount)/2")
             }
         }.resume()
     }
