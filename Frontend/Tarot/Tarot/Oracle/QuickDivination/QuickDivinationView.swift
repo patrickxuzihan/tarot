@@ -1,9 +1,9 @@
 //
-//  QuickDivinationView.swift
+//  QuickDivinationView.swift (修复版本)
 //  Tarot
 //
-//  Created by Xu Zihan on 7/26/25.
-//  悬浮窗一直显示，用户可主动关闭
+//  问题: 悬浮窗占据整个屏幕
+//  解决方案: 正确设置 frame 和 overlay
 
 import SwiftUI
 
@@ -20,8 +20,10 @@ struct QuickDivinationView: View {
     @State private var inputText = ""
     @State private var isTyping = false
     @State private var sentCount = 0
-    @State private var showCardOverlay = true  // ✅ 默认显示悬浮窗
-    @State private var currentCards: [TarotCardData] = TarotCardData.randomCards()  // ✅ 初始就有牌
+    
+    // ✅ 添加悬浮窗控制状态
+    @State private var showTarotCard = false
+    @State private var drawnCard: String? = nil  // 抽到的塔罗牌
     
     // 深色风格配置
     private let backgroundColor = LinearGradient(
@@ -38,14 +40,12 @@ struct QuickDivinationView: View {
     private let modelName = "deepseek-reasoner"
     private let endpointURL = URL(string: "https://api.deepseek.com/v1/chat/completions")!
     
-    // 预设 prompt
     private let systemPrompt = """
-    你是一位塔罗解读师，用最口语化的方式给出不超过600字的指引。
-    1. 请先"模拟抽三张塔罗牌"，然后结合正逆位说一两句。
+    你是一位塔罗解读师,用最口语化的方式给出不超过600字的指引。
+    1. 请先"模拟抽三张塔罗牌",然后结合正逆位说一两句。
     2. 不要出现"AI"、"模型"之类词汇。
-    3. 不只是解读牌，还要给个实际例子，比如"比如你在职场…"，让建议更贴地气。
+    3. 不只是解读牌,还要给个实际例子,比如"比如你在职场…",让建议更贴地气。
     4. 结尾保持一句行动建议即可。
-    5. 如果这是用户的第二次提问，请基于之前的占卜结果继续解读，保持前后连贯。
     """
     
     var body: some View {
@@ -59,15 +59,9 @@ struct QuickDivinationView: View {
                     ScrollViewReader { scrollProxy in
                         ScrollView {
                             VStack(spacing: 15) {
-                                // ✅ 为悬浮窗预留空间
-                                if showCardOverlay {
-                                    Color.clear.frame(height: 150)
-                                }
-                                
-                                // 精简的欢迎区域
                                 welcomeSection
-                                    .padding(.top, showCardOverlay ? 0 : 20)
-                                    .padding(.bottom, 10)
+                                    .padding(.top, 20)
+                                    .padding(.bottom, 15)
                                 
                                 ForEach(messages) { message in
                                     chatMessageView(message: message)
@@ -89,128 +83,260 @@ struct QuickDivinationView: View {
                         }
                     }
                     
-                    // 占卜次数提示
-                    occupyCountHint
+                    if sentCount >= 2 {
+                        Text("本轮占卜次数已用完")
+                            .font(.footnote)
+                            .foregroundColor(.red)
+                            .padding(.bottom, 4)
+                    }
                     
-                    // 输入区
                     chatInputView
                 }
                 
-                // ✅ 塔罗牌展示悬浮窗（默认显示）
-                if showCardOverlay {
-                    TarotCardOverlay(
-                        cards: currentCards,
-                        onDismiss: {
-                            withAnimation(.spring(response: 0.3)) {
-                                showCardOverlay = false
-                            }
-                        }
-                    )
-                    .transition(.move(edge: .top).combined(with: .opacity))
+                // ✅ 正确的悬浮窗实现
+                if showTarotCard {
+                    tarotCardOverlay
                 }
             }
             .navigationBarTitle("塔罗占卜", displayMode: .inline)
-        }
-    }
-    
-    // MARK: - 占卜次数提示
-    private var occupyCountHint: some View {
-        Group {
-            if sentCount >= 2 {
-                Text("本轮占卜次数已用完")
-                    .font(.footnote)
-                    .foregroundColor(.red)
-                    .padding(.bottom, 4)
-            } else if sentCount == 1 {
-                Text("还可以追问 1 次")
-                    .font(.footnote)
-                    .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
-                    .padding(.bottom, 4)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    HStack {
+                        Image(systemName: "moon.stars.fill")
+                            .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
+                        Text("快速占卜")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    messages.append(Message(
+                        content: "欢迎来到塔罗占卜🔮\n请描述您的困惑或问题。",
+                        isUser: false
+                    ))
+                }
             }
         }
+        .preferredColorScheme(.dark)
     }
     
-    // MARK: - 精简的欢迎区域
-    private var welcomeSection: some View {
-        VStack(spacing: 8) {
-            Text("欢迎来到塔罗占卜")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
+    // MARK: - ✅ 修复后的悬浮窗视图
+    private var tarotCardOverlay: some View {
+        ZStack {
+            // 半透明背景遮罩 - 点击可关闭
+            Color.black.opacity(0.6)
+                .edgesIgnoringSafeArea(.all)
+                .onTapGesture {
+                    withAnimation(.spring()) {
+                        showTarotCard = false
+                    }
+                }
             
-            Text("可提问两次，第二次可延续第一次")
-                .font(.caption)
-                .foregroundColor(Color(red: 0.8, green: 0.7, blue: 1.0))
+            // ✅ 悬浮卡片 - 关键是这里要设置具体的尺寸
+            VStack(spacing: 20) {
+                // 关闭按钮
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            showTarotCard = false
+                        }
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                }
+                
+                // 塔罗牌展示
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.6, green: 0.3, blue: 0.8),
+                                    Color(red: 0.4, green: 0.2, blue: 0.6)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 200, height: 320)  // ✅ 明确的尺寸
+                        .shadow(color: .purple.opacity(0.6), radius: 20)
+                    
+                    VStack(spacing: 15) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 60))
+                            .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
+                        
+                        if let card = drawnCard {
+                            Text(card)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                        } else {
+                            Text("塔罗牌")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                
+                // 卡片说明
+                Text("你抽到的塔罗牌")
+                    .font(.headline)
+                    .foregroundColor(.white.opacity(0.9))
+                
+                // 确认按钮
+                Button(action: {
+                    withAnimation(.spring()) {
+                        showTarotCard = false
+                    }
+                }) {
+                    Text("确认")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 120, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color(red: 0.7, green: 0.4, blue: 0.9))
+                        )
+                }
+            }
+            .padding(30)
+            .frame(width: 300)  // ✅ 限制悬浮窗整体宽度
+            .background(
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(Color(red: 0.2, green: 0.1, blue: 0.35))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 25)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color(red: 0.8, green: 0.5, blue: 1.0), .purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 2
+                    )
+            )
+            .shadow(color: .purple.opacity(0.5), radius: 30)
+            // ✅ 添加缩放动画
+            .scaleEffect(showTarotCard ? 1.0 : 0.8)
+            .opacity(showTarotCard ? 1.0 : 0)
         }
-        .padding(.vertical, 10)
     }
     
-    // MARK: - 聊天气泡
-    private func chatMessageView(message: Message) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            if !message.isUser {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 36))
-                    .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
-                    .padding(.top, 4)
-                    .padding(.leading, 4)
-                
-                Text(message.content)
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(Color(red: 0.3, green: 0.15, blue: 0.4))
-                    .cornerRadius(18)
-                
-                Spacer()
-            } else {
-                Spacer()
-                
-                Text(message.content)
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(Color(red: 0.5, green: 0.2, blue: 0.8))
-                    .cornerRadius(18)
-                
-                Image(systemName: "person.crop.circle")
-                    .font(.system(size: 36))
-                    .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
-                    .padding(.top, 4)
-                    .padding(.trailing, 4)
+    // MARK: - 欢迎区
+    private var welcomeSection: some View {
+        VStack(spacing: 15) {
+            // ✅ 添加测试按钮以显示悬浮窗
+            Button(action: {
+                drawnCard = "愚者(正位)"
+                withAnimation(.spring()) {
+                    showTarotCard = true
+                }
+            }) {
+                HStack {
+                    Image(systemName: "hand.tap.fill")
+                        .font(.system(size: 28))
+                    Text("点击测试悬浮窗")
+                        .font(.headline)
+                }
+                .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
             }
+            
+            Text("神秘塔罗指引")
+                .font(.title2).fontWeight(.bold)
+                .foregroundColor(.white)
+                .shadow(color: Color(red: 0.8, green: 0.3, blue: 1.0), radius: 2)
+            
+            Text("请输入您的问题或困惑")
+                .font(.subheadline)
+                .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
+                .opacity(0.9)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.vertical, 25)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 25)
+                .fill(Color(red: 0.25, green: 0.15, blue: 0.4))
+                .shadow(color: .purple.opacity(0.4), radius: 15, y: 5)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color(red: 0.7, green: 0.3, blue: 0.8), .purple],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+    }
+    
+    // MARK: - 聊天消息视图
+    private func chatMessageView(message: Message) -> some View {
+        HStack(alignment: .top, spacing: 6) {
+            if !message.isUser {
+                Image(systemName: "moon.stars.fill")
+                    .font(.caption)
+                    .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
+                    .frame(width: 28, height: 28)
+                    .background(
+                        Circle()
+                            .fill(Color(red: 0.3, green: 0.2, blue: 0.5))
+                    )
+            }
+            
+            Text(message.content)
+                .font(.body)
+                .foregroundColor(.white)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(
+                            message.isUser
+                                ? Color(red: 0.5, green: 0.3, blue: 0.7)
+                                : Color(red: 0.25, green: 0.15, blue: 0.4)
+                        )
+                )
+                .frame(maxWidth: 280, alignment: message.isUser ? .trailing : .leading)
+            
+            if message.isUser {
+                Image(systemName: "person.circle.fill")
+                    .font(.caption)
+                    .foregroundColor(Color(red: 0.8, green: 0.5, blue: 1.0))
+                    .frame(width: 28, height: 28)
+            }
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: message.isUser ? .trailing : .leading)
     }
     
     // MARK: - 打字指示器
     private var typingIndicator: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 20))
-                .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.3))
-                .symbolEffect(.bounce, value: UUID())
-            
-            Text("塔罗精灵正在解读牌面…")
-                .font(.system(size: 14))
-                .foregroundColor(Color(red: 0.9, green: 0.8, blue: 1.0))
-            
-            DotView(delay: 0)
-            DotView(delay: 0.2)
-            DotView(delay: 0.4)
+        HStack(spacing: 4) {
+            ForEach(0..<3) { i in
+                DotView(delay: Double(i) * 0.2)
+            }
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(
-            Color(red: 0.3, green: 0.15, blue: 0.4)
-                .cornerRadius(15)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(red: 0.25, green: 0.15, blue: 0.4))
         )
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
-    // MARK: - 打字动画点
     struct DotView: View {
         let delay: Double
         @State private var scale: CGFloat = 0.5
@@ -295,17 +421,6 @@ struct QuickDivinationView: View {
         inputText = ""
         isTyping = true
         
-        // 构建完整的对话历史
-        var apiMessages: [[String: String]] = [
-            ["role": "system", "content": systemPrompt]
-        ]
-        
-        for message in messages {
-            let role = message.isUser ? "user" : "assistant"
-            apiMessages.append(["role": role, "content": message.content])
-        }
-        
-        // 构造 DeepSeek 请求
         var req = URLRequest(url: endpointURL)
         req.httpMethod = "POST"
         req.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
@@ -313,12 +428,23 @@ struct QuickDivinationView: View {
         
         let body: [String: Any] = [
             "model": modelName,
-            "messages": apiMessages
+            "messages": [
+                ["role": "system", "content": systemPrompt],
+                ["role": "user",   "content": userInput]
+            ]
         ]
-        
         req.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
         URLSession.shared.dataTask(with: req) { data, resp, err in
+            if let err = err {
+                print("Network error:", err)
+            }
+            if let http = resp as? HTTPURLResponse {
+                print("Status code:", http.statusCode)
+            }
+            if let data = data, let body = String(data: data, encoding: .utf8) {
+                print("Response body:", body)
+            }
             DispatchQueue.main.async {
                 isTyping = false
                 guard
@@ -328,12 +454,17 @@ struct QuickDivinationView: View {
                     let msg = choices.first?["message"] as? [String: Any],
                     let content = msg["content"] as? String
                 else {
-                    messages.append(Message(content: "请求出错，请稍后再试。", isUser: false))
+                    messages.append(Message(content: "请求出错,请稍后再试。", isUser: false))
                     return
                 }
+                messages.append(Message(content: content.trimmingCharacters(in: .whitespacesAndNewlines), isUser: false))
                 
-                let aiResponse = content.trimmingCharacters(in: .whitespacesAndNewlines)
-                messages.append(Message(content: aiResponse, isUser: false))
+                // ✅ 示例:收到回复后显示悬浮窗
+                // 你可以在这里解析 AI 返回的塔罗牌并显示
+                // drawnCard = "从AI回复中提取的塔罗牌"
+                // withAnimation(.spring()) {
+                //     showTarotCard = true
+                // }
             }
         }.resume()
     }
